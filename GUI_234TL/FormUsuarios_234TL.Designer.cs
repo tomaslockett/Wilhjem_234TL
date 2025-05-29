@@ -50,7 +50,7 @@
             Modo = new Label();
             label9 = new Label();
             Eliminarbutton = new Button();
-            VerradioButton = new RadioButton();
+            AtributoscheckBox = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)dataGridViewUsuarios).BeginInit();
             SuspendLayout();
             // 
@@ -284,25 +284,23 @@
             Eliminarbutton.UseVisualStyleBackColor = true;
             Eliminarbutton.Click += Eliminarbutton_Click;
             // 
-            // VerradioButton
+            // AtributoscheckBox
             // 
-            VerradioButton.AutoSize = true;
-            VerradioButton.Location = new Point(626, 32);
-            VerradioButton.Margin = new Padding(4, 3, 4, 3);
-            VerradioButton.Name = "VerradioButton";
-            VerradioButton.Size = new Size(137, 19);
-            VerradioButton.TabIndex = 56;
-            VerradioButton.TabStop = true;
-            VerradioButton.Text = "Ver Atributos Ocultos";
-            VerradioButton.UseVisualStyleBackColor = true;
-            VerradioButton.CheckedChanged += VerradioButton_CheckedChanged;
+            AtributoscheckBox.AutoSize = true;
+            AtributoscheckBox.Location = new Point(621, 34);
+            AtributoscheckBox.Name = "AtributoscheckBox";
+            AtributoscheckBox.Size = new Size(138, 19);
+            AtributoscheckBox.TabIndex = 57;
+            AtributoscheckBox.Text = "Ver Atributos Ocultos";
+            AtributoscheckBox.UseVisualStyleBackColor = true;
+            AtributoscheckBox.CheckedChanged += AtributoscheckBox_CheckedChanged;
             // 
             // FormUsuarios_234TL
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1368, 594);
-            Controls.Add(VerradioButton);
+            Controls.Add(AtributoscheckBox);
             Controls.Add(Eliminarbutton);
             Controls.Add(label9);
             Controls.Add(Modo);
@@ -326,7 +324,7 @@
             Controls.Add(radioButtonActivo);
             Controls.Add(dataGridViewUsuarios);
             Name = "FormUsuarios_234TL";
-            Text = "FormUsuarios_234TL";
+            Text = "Gestion De Usuarios";
             ((System.ComponentModel.ISupportInitialize)dataGridViewUsuarios).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -356,5 +354,6 @@
         private Label label9;
         private Button Eliminarbutton;
         private RadioButton VerradioButton;
+        private CheckBox AtributoscheckBox;
     }
 }

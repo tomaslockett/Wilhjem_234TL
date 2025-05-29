@@ -42,21 +42,21 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(122, 91);
+            textBox1.Location = new Point(125, 59);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(275, 23);
             textBox1.TabIndex = 0;
             // 
             // textBox2
             // 
-            textBox2.Location = new Point(122, 156);
+            textBox2.Location = new Point(125, 124);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(275, 23);
             textBox2.TabIndex = 1;
             // 
             // textBox3
             // 
-            textBox3.Location = new Point(122, 220);
+            textBox3.Location = new Point(125, 188);
             textBox3.Name = "textBox3";
             textBox3.Size = new Size(275, 23);
             textBox3.TabIndex = 2;
@@ -65,7 +65,7 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(149, 36);
+            label1.Location = new Point(145, 9);
             label1.Name = "label1";
             label1.Size = new Size(210, 30);
             label1.TabIndex = 3;
@@ -74,7 +74,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(12, 91);
+            label2.Location = new Point(15, 59);
             label2.Name = "label2";
             label2.Size = new Size(104, 15);
             label2.TabIndex = 4;
@@ -83,7 +83,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(12, 159);
+            label3.Location = new Point(15, 127);
             label3.Name = "label3";
             label3.Size = new Size(104, 15);
             label3.TabIndex = 5;
@@ -92,7 +92,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(12, 228);
+            label4.Location = new Point(15, 196);
             label4.Name = "label4";
             label4.Size = new Size(104, 15);
             label4.TabIndex = 6;
@@ -100,7 +100,7 @@
             // 
             // Ingresarbutton
             // 
-            Ingresarbutton.Location = new Point(188, 302);
+            Ingresarbutton.Location = new Point(189, 230);
             Ingresarbutton.Name = "Ingresarbutton";
             Ingresarbutton.Size = new Size(134, 32);
             Ingresarbutton.TabIndex = 9;
@@ -111,7 +111,7 @@
             // MostrarButton
             // 
             MostrarButton.AutoSize = true;
-            MostrarButton.Location = new Point(403, 158);
+            MostrarButton.Location = new Point(406, 126);
             MostrarButton.Name = "MostrarButton";
             MostrarButton.Size = new Size(67, 19);
             MostrarButton.TabIndex = 12;
@@ -122,7 +122,7 @@
             // MostarButton2
             // 
             MostarButton2.AutoSize = true;
-            MostarButton2.Location = new Point(403, 222);
+            MostarButton2.Location = new Point(406, 190);
             MostarButton2.Name = "MostarButton2";
             MostarButton2.Size = new Size(63, 19);
             MostarButton2.TabIndex = 13;
@@ -134,7 +134,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(536, 422);
+            ClientSize = new Size(484, 274);
             Controls.Add(MostarButton2);
             Controls.Add(MostrarButton);
             Controls.Add(Ingresarbutton);
@@ -146,7 +146,8 @@
             Controls.Add(textBox2);
             Controls.Add(textBox1);
             Name = "FormCambiarContraseña_234TL";
-            Text = "CambiarContraseña_234TL";
+            Text = "Cambiar Contraseña";
+            Load += FormCambiarContraseña_234TL_Load;
             ResumeLayout(false);
             PerformLayout();
         }

@@ -1,6 +1,7 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
 using Servicios_234TL.Singleton_234TL;
+using Wilhjem;
 
 namespace GUI_234TL
 {
@@ -29,7 +30,7 @@ namespace GUI_234TL
             this.BackColor = Color.FromArgb(255, 192, 192, 192);
         }
 
-        private readonly UsuarioBLL_234TL usuarioBLL = new UsuarioBLL_234TL();
+        private readonly UsuarioBLL_234TL usuarioBLL = new();
 
         private void Ingresarbutton_Click(object sender, EventArgs e)
         {
@@ -39,29 +40,28 @@ namespace GUI_234TL
                 string nueva = textBox2.Text.Trim();
                 string confirmacion = textBox3.Text.Trim();
 
-                var sesion = SingletonSesion.GetInstance();
-                if (!sesion.IsLoggedIn_234TL())
+                if (!SingletonSesion.GetInstance().IsLoggedIn_234TL())
                 {
-                    MessageBox.Show("No hay un usuario logueado. No se puede cambiar la contraseña.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Utilitarios_234TL.MensajeError("No hay un usuario logueado. No se puede cambiar la contraseña.");
                     this.Close();
                     return;
                 }
                 var usuario = usuarioBLL.GetUsuarioLogueado();
                 if (usuario == null)
                 {
-                    MessageBox.Show("No hay un usuario logueado. No se puede cambiar la contraseña.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Utilitarios_234TL.MensajeError("No hay un usuario logueado. No se puede cambiar la contraseña.");
                     this.Close();
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(nueva) || string.IsNullOrWhiteSpace(confirmacion))
                 {
-                    MessageBox.Show("Por favor, completá todos los campos.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Utilitarios_234TL.MensajeAdvertencia("Por favor, completá todos los campos.");
                     return;
                 }
 
                 if (nueva != confirmacion)
                 {
-                    MessageBox.Show("La nueva contraseña no coincide con la confirmación.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Utilitarios_234TL.MensajeError("La nueva contraseña no coincide con la confirmación.");
                     return;
                 }
 
@@ -69,18 +69,31 @@ namespace GUI_234TL
 
                 if (usuario.Password != Actualpassword)
                 {
-                    MessageBox.Show("La contraseña actual es incorrecta.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Utilitarios_234TL.MensajeError("La contraseña actual es incorrecta");
+                    return;
+                }
+                if (Encryptador_234TL.SHA256Encrpytar_234TL(nueva) == usuario.Password)
+                {
+                    Utilitarios_234TL.MensajeError("La nueva contraseña no puede ser igual a la actual");
                     return;
                 }
                 string nuevaHash = Encryptador_234TL.SHA256Encrpytar_234TL(nueva);
                 usuario.Password = nuevaHash;
                 usuarioBLL.Update(usuario);
-                MessageBox.Show("Contraseña cambiada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                usuarioBLL.Logout();
+                if (this.Owner is FormPrincipal_234TL formPrincipal)
+                {
+                    Utilitarios_234TL.CambiarUsuarioToolStrip(formPrincipal.toolStripStatusLabel1, usuarioBLL.GetUsuarioLogueado());
+                }
+                Utilitarios_234TL.MensajeExito("Contraseña cambiada correctamente, va a cerrarse la sesion");
+                textBox1.Clear();
+                textBox2.Clear();
+                textBox3.Clear();
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ocurrió un error inesperado:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Utilitarios_234TL.MensajeError("Ocurrió un error inesperado:\n" + ex.Message);
             }
         }
 
@@ -106,6 +119,10 @@ namespace GUI_234TL
             {
                 textBox3.UseSystemPasswordChar = true;
             }
+        }
+
+        private void FormCambiarContraseña_234TL_Load(object sender, EventArgs e)
+        {
         }
     }
 }

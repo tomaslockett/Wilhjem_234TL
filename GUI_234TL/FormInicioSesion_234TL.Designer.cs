@@ -42,7 +42,7 @@
             // 
             // IngresarButton
             // 
-            IngresarButton.Location = new Point(85, 149);
+            IngresarButton.Location = new Point(143, 166);
             IngresarButton.Name = "IngresarButton";
             IngresarButton.Size = new Size(75, 23);
             IngresarButton.TabIndex = 0;
@@ -52,12 +52,13 @@
             // 
             // VolverButton
             // 
-            VolverButton.Location = new Point(307, 187);
+            VolverButton.Location = new Point(316, 187);
             VolverButton.Name = "VolverButton";
             VolverButton.Size = new Size(75, 23);
             VolverButton.TabIndex = 1;
             VolverButton.Text = "Volver";
             VolverButton.UseVisualStyleBackColor = true;
+            VolverButton.Click += VolverButton_Click;
             // 
             // label1
             // 
@@ -81,24 +82,24 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label3.Location = new Point(85, 9);
+            label3.Location = new Point(106, 9);
             label3.Name = "label3";
-            label3.Size = new Size(138, 30);
+            label3.Size = new Size(144, 30);
             label3.TabIndex = 4;
-            label3.Text = "IniciarSesion";
+            label3.Text = "Iniciar Sesion";
             // 
             // textBox1
             // 
             textBox1.Location = new Point(72, 73);
             textBox1.Name = "textBox1";
-            textBox1.Size = new Size(178, 23);
+            textBox1.Size = new Size(219, 23);
             textBox1.TabIndex = 5;
             // 
             // textBox2
             // 
             textBox2.Location = new Point(72, 120);
             textBox2.Name = "textBox2";
-            textBox2.Size = new Size(178, 23);
+            textBox2.Size = new Size(219, 23);
             textBox2.TabIndex = 6;
             // 
             // label4
@@ -115,14 +116,15 @@
             label5.AutoSize = true;
             label5.Location = new Point(72, 99);
             label5.Name = "label5";
-            label5.Size = new Size(178, 15);
+            label5.Size = new Size(196, 15);
             label5.TabIndex = 9;
-            label5.Text = "Apellido + 3 Ultimos digitos  Dni";
+            label5.Text = "Apellido + 3 Ultimos Digitos Del Dni";
+            label5.Click += label5_Click;
             // 
             // MostrarButton
             // 
             MostrarButton.AutoSize = true;
-            MostrarButton.Location = new Point(259, 124);
+            MostrarButton.Location = new Point(297, 124);
             MostrarButton.Name = "MostrarButton";
             MostrarButton.Size = new Size(67, 19);
             MostrarButton.TabIndex = 10;
@@ -146,7 +148,7 @@
             Controls.Add(VolverButton);
             Controls.Add(IngresarButton);
             Name = "FormInicioSesion_234TL";
-            Text = "FormInicioSesion_234TL";
+            Text = "Iniciar Sesion";
             Load += FormInicioSesion_234TL_Load;
             ResumeLayout(false);
             PerformLayout();

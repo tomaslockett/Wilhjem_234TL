@@ -31,7 +31,7 @@ namespace Wilhjem
             {
                 if (usuario != null)
                 {
-                    label.Text = "Usuario: " + usuario.Nombre;
+                    label.Text = $"¡Bienvenido/a, {usuario.Nombre}! ¡Que tengas una excelente jornada!";
                 }
                 else
                 {
@@ -42,6 +42,26 @@ namespace Wilhjem
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        public static void MensajeInformacion(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        public static void MensajeError(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        public static void MensajeAdvertencia(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        public static void MensajeExito(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

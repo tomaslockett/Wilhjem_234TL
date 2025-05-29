@@ -175,7 +175,7 @@
             Controls.Add(pictureBox1);
             Controls.Add(flowLayoutPanel1);
             Name = "FormPrincipal_234TL";
-            Text = "Form1";
+            Text = "Wilhjem";
             flowLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             statusStrip1.ResumeLayout(false);
@@ -196,6 +196,6 @@
         private Button button2;
         private PictureBox pictureBox1;
         private StatusStrip statusStrip1;
-        private ToolStripStatusLabel toolStripStatusLabel1;
+        public ToolStripStatusLabel toolStripStatusLabel1;
     }
 }

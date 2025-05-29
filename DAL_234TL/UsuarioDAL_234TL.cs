@@ -14,7 +14,7 @@ namespace DAL_234TL
                 using (SqlConnection BaseDatos = new(connectionString))
                 {
                     BaseDatos.Open();
-                    string query = "SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos FROM Usuarios_234TL WHERE DNI = @DNI";
+                    string query = "SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos,UltimoIntentoFallido FROM Usuarios_234TL WHERE DNI = @DNI";
 
                     using (SqlCommand comando = new(query, BaseDatos))
                     {
@@ -26,7 +26,7 @@ namespace DAL_234TL
                             {
                                 return new Usuario_234TL
                                 {
-                                    DNI = reader.GetInt32(0),
+                                    DNI = reader.GetString(0),
                                     Nombre = reader.GetString(1),
                                     Apellido = reader.GetString(2),
                                     Email = reader.GetString(3),
@@ -35,7 +35,8 @@ namespace DAL_234TL
                                     Activo = reader.GetBoolean(6),
                                     Login = reader.GetString(7),
                                     Password = reader.GetString(8),
-                                    IntentosFallidos = reader.GetInt32(9)
+                                    IntentosFallidos = reader.GetInt32(9),
+                                    UltimoIntentoFallido = reader.IsDBNull(10) ? (DateTime?)null : reader.GetDateTime(10)
                                 };
                             }
                         }
@@ -63,7 +64,7 @@ namespace DAL_234TL
                 using (SqlConnection BaseDatos = new(connectionString))
                 {
                     BaseDatos.Open();
-                    string query = "SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos FROM Usuarios_234TL";
+                    string query = "SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos,UltimoIntentoFallido FROM Usuarios_234TL";
 
                     using (SqlCommand Comando = new(query, BaseDatos))
                     {
@@ -73,7 +74,7 @@ namespace DAL_234TL
                             {
                                 Usuario_234TL usuario = new Usuario_234TL
                                 {
-                                    DNI = reader.GetInt32(0),
+                                    DNI = reader.GetString(0),
                                     Nombre = reader.GetString(1),
                                     Apellido = reader.GetString(2),
                                     Email = reader.GetString(3),
@@ -82,7 +83,8 @@ namespace DAL_234TL
                                     Activo = reader.GetBoolean(6),
                                     Login = reader.GetString(7),
                                     Password = reader.GetString(8),
-                                    IntentosFallidos = reader.GetInt32(9)
+                                    IntentosFallidos = reader.GetInt32(9),
+                                    UltimoIntentoFallido = reader.IsDBNull(10) ? (DateTime?)null : reader.GetDateTime(10)
                                 };
                                 ListaUsuarios.Add(usuario);
                             }
@@ -112,9 +114,9 @@ namespace DAL_234TL
                 using (SqlConnection BaseDatos = new SqlConnection(connectionString))
                 {
                     string query = @"INSERT INTO Usuarios_234TL
-                        (DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos)
+                        (DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos,UltimoIntentoFallido)
                         VALUES
-                        (@DNI, @Nombre, @Apellido, @Email, @Rol, @Bloqueo, @Activo, @Login, @Password, @IntentosFallidos)";
+                        (@DNI, @Nombre, @Apellido, @Email, @Rol, @Bloqueo, @Activo, @Login, @Password, @IntentosFallidos,@UltimoIntentoFallido)";
 
                     using (SqlCommand command = new SqlCommand(query, BaseDatos))
                     {
@@ -128,6 +130,7 @@ namespace DAL_234TL
                         command.Parameters.AddWithValue("@Login", Entidad.Login);
                         command.Parameters.AddWithValue("@Password", Entidad.Password);
                         command.Parameters.AddWithValue("@IntentosFallidos", Entidad.IntentosFallidos);
+                        command.Parameters.AddWithValue("@UltimoIntentoFallido", Entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
 
                         BaseDatos.Open();
                         command.ExecuteNonQuery();
@@ -162,7 +165,8 @@ namespace DAL_234TL
                              Activo = @Activo,
                              Login = @Login,
                              Password = @Password,
-                             IntentosFallidos = @IntentosFallidos
+                             IntentosFallidos = @IntentosFallidos,
+                             UltimoIntentoFallido = @UltimoIntentoFallido
                          WHERE DNI = @DNI";
 
                     using (SqlCommand command = new(query, BaseDatos))
@@ -177,6 +181,7 @@ namespace DAL_234TL
                         command.Parameters.AddWithValue("@Password", Entidad.Password);
                         command.Parameters.AddWithValue("@IntentosFallidos", Entidad.IntentosFallidos);
                         command.Parameters.AddWithValue("@Login", Entidad.Login);
+                        command.Parameters.AddWithValue("@UltimoIntentoFallido", Entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
                         command.ExecuteNonQuery();
                     }
                 }
@@ -273,7 +278,7 @@ namespace DAL_234TL
                             {
                                 return new Usuario_234TL
                                 {
-                                    DNI = reader.GetInt32(0),
+                                    DNI = reader.GetString(0),
                                     Nombre = reader.GetString(1),
                                     Apellido = reader.GetString(2),
                                     Email = reader.GetString(3),
@@ -282,7 +287,8 @@ namespace DAL_234TL
                                     Activo = reader.GetBoolean(6),
                                     Login = reader.GetString(7),
                                     Password = reader.GetString(8),
-                                    IntentosFallidos = reader.GetInt32(9)
+                                    IntentosFallidos = reader.GetInt32(9),
+                                    UltimoIntentoFallido = reader.IsDBNull(10) ? (DateTime?)null : reader.GetDateTime(10)
                                 };
                             }
                         }

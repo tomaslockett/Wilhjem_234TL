@@ -6,24 +6,19 @@ namespace GUI_234TL
 {
     public partial class FormPrincipal_234TL : Form
     {
+        private readonly UsuarioBLL_234TL usuario = new();
+
         public FormPrincipal_234TL()
         {
             InitializeComponent();
-            var Sesion = new Sesion_234TL();
             OcultarBotones();
             this.BackColor = Color.FromArgb(255, 192, 192, 192);
-            var Usuariologueado = new UsuarioBLL_234TL().GetUsuarioLogueado();
-            if (Usuariologueado != null)
-            {
-                toolStripStatusLabel1.Text = "Usuario: " + Usuariologueado.Nombre;
-            }
-            else
-            {
-                toolStripStatusLabel1.Text = "Usuario: No hay usuario logueado";
-            }
+            var Usuariologueado = usuario.GetUsuarioLogueado();
+            Utilitarios_234TL.CambiarUsuarioToolStrip(toolStripStatusLabel1, Usuariologueado);
         }
 
-        //Sesion
+        #region Sesion
+
         private void SesionButton_Click(object sender, EventArgs e)
         {
             bool activado = IniciarSesionButton.Visible;
@@ -42,10 +37,14 @@ namespace GUI_234TL
             Utilitarios_234TL.TamañoOriginal(SesionButton);
         }
 
-        //Iniciar Sesion
+        #endregion Sesion
+
+        #region Iniciar Sesion
+
         private void IniciarSesionButton_Click(object sender, EventArgs e)
         {
             FormInicioSesion_234TL formInicioSesion = FormInicioSesion_234TL.ObtenerInstancia();
+            formInicioSesion.Owner = this;
             formInicioSesion.StartPosition = FormStartPosition.CenterParent;
             formInicioSesion.ShowDialog(this);
         }
@@ -60,24 +59,27 @@ namespace GUI_234TL
             Utilitarios_234TL.TamañoOriginal(IniciarSesionButton);
         }
 
-        //Cerrar Sesion
+        #endregion Iniciar Sesion
+
+        #region Cerrar Sesion
+
         private void CerrarSesionButton_Click(object sender, EventArgs e)
         {
-            var usuario = new UsuarioBLL_234TL();
             var resultado = usuario.Logout();
 
             switch (resultado)
             {
                 case Resultados_234TL.SesionCerrada:
-                    MessageBox.Show("Usuario deslogueado");
+                    Utilitarios_234TL.MensajeInformacion("Sesión cerrada");
+                    Utilitarios_234TL.CambiarUsuarioToolStrip(toolStripStatusLabel1, null);
                     break;
 
                 case Resultados_234TL.NoHayLogueado:
-                    MessageBox.Show("No hay usuario logueado");
+                    Utilitarios_234TL.MensajeAdvertencia("No hay usuario logueado");
                     break;
 
                 default:
-                    MessageBox.Show("Error al cerrar sesión");
+                    Utilitarios_234TL.MensajeError("Error al cerrar sesión");
                     break;
             }
         }
@@ -92,7 +94,10 @@ namespace GUI_234TL
             Utilitarios_234TL.TamañoOriginal(CerrarSesionButton);
         }
 
-        //Perfiles
+        #endregion Cerrar Sesion
+
+        #region Perfiles
+
         private void PerfilesButton_Click(object sender, EventArgs e)
         {
             var formPerfiles = FormUsuarios_234TL.ObtenerInstancia();
@@ -109,10 +114,14 @@ namespace GUI_234TL
             Utilitarios_234TL.TamañoOriginal(PerfilesButton);
         }
 
-        // Cambiar Contraseña
+        #endregion Perfiles
+
+        #region Cambiar Contraseña
+
         private void CambiarContraseñabutton_Click(object sender, EventArgs e)
         {
             FormCambiarContraseña_234TL formCambiarContraseña = new FormCambiarContraseña_234TL();
+            formCambiarContraseña.Owner = this;
             formCambiarContraseña.StartPosition = FormStartPosition.CenterParent;
             formCambiarContraseña.ShowDialog(this);
         }
@@ -127,7 +136,9 @@ namespace GUI_234TL
             Utilitarios_234TL.Agrandar(CambiarContraseñabutton);
         }
 
-        //Gestion Usuario
+        #endregion Cambiar Contraseña
+
+        #region Gestion de Usuarios
 
         private void GestionUsuariobutton_MouseHover(object sender, EventArgs e)
         {
@@ -145,12 +156,9 @@ namespace GUI_234TL
             PerfilesButton.Visible = !activado;
         }
 
-        //Funciones
-        private void IniciarBotones()
-        {
-            IniciarSesionButton.Visible = false;
-            CerrarSesionButton.Visible = false;
-        }
+        #endregion Gestion de Usuarios
+
+        #region Funciones
 
         private void OcultarBotones()
         {
@@ -163,15 +171,12 @@ namespace GUI_234TL
         private void MostrarFormularioInterno(Form formHijo, Form formPadre)
         {
             formHijo.TopLevel = false;
-            //formHijo.FormBorderStyle = FormBorderStyle.None;
 
-            // Márgenes personalizados
             int margenIzquierdo = 220;
             int margenSuperior = 10;
             int margenDerecho = 20;
             int margenInferior = 30;
 
-            // Cálculo del tamaño y posición
             int ancho = formPadre.ClientSize.Width - margenIzquierdo - margenDerecho;
             int alto = formPadre.ClientSize.Height - margenSuperior - margenInferior;
 
@@ -179,10 +184,11 @@ namespace GUI_234TL
             formHijo.Size = new Size(ancho, alto);
             formHijo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Mostrar dentro del formulario padre
             formPadre.Controls.Add(formHijo);
             formHijo.BringToFront();
             formHijo.Show();
         }
+
+        #endregion Funciones
     }
 }

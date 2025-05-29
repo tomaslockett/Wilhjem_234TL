@@ -1,6 +1,7 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
 using Servicios_234TL.Singleton_234TL;
+using Wilhjem;
 
 namespace GUI_234TL
 {
@@ -41,48 +42,61 @@ namespace GUI_234TL
             {
                 if (string.IsNullOrEmpty(Login))
                     throw new Exception("Inserte un login");
+
                 if (string.IsNullOrEmpty(Password))
                     throw new Exception("Inserte un password");
+
                 var resultado = usuarioBLL.Login(Login, Password);
 
                 switch (resultado)
                 {
                     case Resultados_234TL.UsuarioLogueado:
-                        MessageBox.Show("Ya hay un usuario logueado");
+                        Utilitarios_234TL.MensajeError("Ya hay un usuario logueado");
                         this.Close();
                         break;
 
                     case Resultados_234TL.UsuarioValido:
-                        MessageBox.Show("Login exitoso");
+                        Utilitarios_234TL.MensajeExito("Usuario logueado");
+                        textBox1.Clear();
+                        textBox2.Clear();
+
+                        if (this.Owner is FormPrincipal_234TL formPrincipal)
+                        {
+                            Utilitarios_234TL.CambiarUsuarioToolStrip(formPrincipal.toolStripStatusLabel1, usuarioBLL.GetUsuarioLogueado());
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se pudo actualizar el usuario logueado");
+                        }
                         this.Close();
                         break;
 
                     case Resultados_234TL.UsuarioBloqueado:
-                        MessageBox.Show("El usuario está bloqueado");
+                        Utilitarios_234TL.MensajeError("El usuario está bloqueado");
                         this.Close();
                         break;
 
                     case Resultados_234TL.ContrasenaInvalida:
-                        MessageBox.Show("Contraseña incorrecta");
+                        Utilitarios_234TL.MensajeAdvertencia("Contraseña incorrecta");
                         break;
 
                     case Resultados_234TL.UsuarioNoExiste:
-                        MessageBox.Show("El usuario no existe");
+                        Utilitarios_234TL.MensajeError("El usuario no existe");
                         break;
 
                     case Resultados_234TL.UsuarioInactivo:
-                        MessageBox.Show("El usuario está inactivo");
+                        Utilitarios_234TL.MensajeError("El usuario está inactivo");
                         this.Close();
                         break;
                 }
             }
             catch (Exepcion_234TL ex)
             {
-                MessageBox.Show(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             finally
             {
@@ -104,6 +118,19 @@ namespace GUI_234TL
             {
                 textBox2.UseSystemPasswordChar = true;
             }
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void VolverButton_Click(object sender, EventArgs e)
+        {
+            if (this.Owner != null)
+            {
+                this.Owner.Show();
+            }
+            this.Close();
         }
     }
 }

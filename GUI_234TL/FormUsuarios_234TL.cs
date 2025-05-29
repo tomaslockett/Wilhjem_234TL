@@ -1,6 +1,7 @@
-﻿using System.Text.RegularExpressions;
-using BLL_234TL;
+﻿using BLL_234TL;
 using Servicios_234TL;
+using System.Text.RegularExpressions;
+using Wilhjem;
 
 namespace GUI_234TL
 {
@@ -8,7 +9,7 @@ namespace GUI_234TL
     {
         private static FormUsuarios_234TL instancia;
 
-        private const string RolAdmin = "admin";
+        private const string RolAdmin = "SuperAdmin";
 
         public static FormUsuarios_234TL ObtenerInstancia()
         {
@@ -23,8 +24,6 @@ namespace GUI_234TL
 
         private ModoFormulario ModoActual = ModoFormulario.ModoConsulta;
 
-        private bool Activo;
-
         public FormUsuarios_234TL()
         {
             InitializeComponent();
@@ -35,9 +34,9 @@ namespace GUI_234TL
             this.MinimizeBox = false;
             this.ControlBox = true;
             radioButtonActivo.Checked = true;
-            bool Activo = radioButtonActivo.Checked;
             CambiarModo(ModoFormulario.ModoConsulta);
             CargarUsuarios();
+            dataGridViewUsuarios.DataBindingComplete += DataGridCompletado;
 
             #region Color Fondo
 
@@ -47,54 +46,141 @@ namespace GUI_234TL
 
             #region ColorBotones
 
-            ConsultaButton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            ConsultaButton.ForeColor = Color.White;
-            CrearButton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            CrearButton.ForeColor = Color.White;
-            ModificarButton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            ModificarButton.ForeColor = Color.White;
-            ActDesactButton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            ActDesactButton.ForeColor = Color.White;
-            DesbloquearButton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            DesbloquearButton.ForeColor = Color.White;
-            AplicarButton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            AplicarButton.ForeColor = Color.White;
-            Eliminarbutton.BackColor = ColorTranslator.FromHtml("#043f5b");
-            Eliminarbutton.ForeColor = Color.White;
+            AplicarEstiloBoton(CrearButton);
+            AplicarEstiloBoton(ModificarButton);
+            AplicarEstiloBoton(ActDesactButton);
+            AplicarEstiloBoton(DesbloquearButton);
+            AplicarEstiloBoton(AplicarButton);
+            AplicarEstiloBoton(Eliminarbutton);
+            AplicarEstiloBoton(ConsultaButton);
 
             #endregion ColorBotones
         }
 
-        private void CargarDatosUsuario()
+        #region Botones
+
+        #region Consulta
+
+        private void ConsultaButton_Click(object sender, EventArgs e)
         {
-            var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
-            DNItextBox.Text = usuario.DNI.ToString();
-            NombretextBox.Text = usuario.Nombre;
-            ApellidotextBox.Text = usuario.Apellido;
-            EmailtextBox.Text = usuario.Email;
-            RolcomboBox.Text = usuario.Rol;
+            CambiarModo(ModoFormulario.ModoConsulta);
         }
 
-        private void OcultarColumnas()
+        #endregion Consulta
+
+        #region Crear
+
+        private void CrearButton_Click(object sender, EventArgs e)
         {
-            dataGridViewUsuarios.Columns["Login"].Visible = false;
-            dataGridViewUsuarios.Columns["Activo"].Visible = false;
-            dataGridViewUsuarios.Columns["Password"].Visible = false;
-            dataGridViewUsuarios.Columns["IntentosFallidos"].Visible = false;
-            dataGridViewUsuarios.Columns["Bloqueado"].Visible = false;
+            CambiarModo(ModoFormulario.ModoCrear);
         }
 
-        private void ColorearFilasBloqueadas()
+        #endregion Crear
+
+        #region Modificar
+
+        private void ModificarButton_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewRow row in dataGridViewUsuarios.Rows)
+            CambiarModo(ModoFormulario.ModoModificar);
+        }
+
+        #endregion Modificar
+
+        #region Desbloquear
+
+        private void DesbloquearButton_Click(object sender, EventArgs e)
+        {
+            CambiarModo(ModoFormulario.ModoDesbloquear);
+        }
+
+        #endregion Desbloquear
+
+        #region Eliminar
+
+        private void Eliminarbutton_Click(object sender, EventArgs e)
+        {
+            CambiarModo(ModoFormulario.ModoEliminar);
+        }
+
+        #endregion Eliminar
+
+        #region Activar/Desactivar
+
+        private void ActDesactButton_Click(object sender, EventArgs e)
+        {
+            if (dataGridViewUsuarios.CurrentRow == null)
             {
-                var usuario = (Usuario_234TL)row.DataBoundItem;
-                if (usuario.Bloqueado)
+                Utilitarios_234TL.MensajeError("Seleccione un usuario para activar/desactivar");
+                return;
+            }
+            var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
+
+            if (usuario.Rol == RolAdmin)
+            {
+                Utilitarios_234TL.MensajeError("No se puede activar/desactivar un usuario Super administrador");
+                return;
+            }
+
+            if (usuario.Activo)
+            {
+                var Confirmar = MessageBox.Show($"¿Seguro que desea desactivar al usuario “{usuario.Login}”?", "Confirmar desactivación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (Confirmar == DialogResult.Yes)
                 {
-                    row.DefaultCellStyle.BackColor = Color.LightCoral;
+                    bll.DesactivarUsuario(usuario);
+                    Utilitarios_234TL.MensajeExito("Usuario desactivado correctamente");
                 }
             }
+            else
+            {
+                var Confirmar2 = MessageBox.Show($"¿Seguro que desea activar al usuario “{usuario.Login}”?", "Confirmar activación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (Confirmar2 == DialogResult.Yes)
+                {
+                    bll.ActivarUsuario(usuario);
+                    Utilitarios_234TL.MensajeExito("Usuario activado correctamente");
+                }
+            }
+            CargarUsuarios();
+            CargarDatosUsuario();
         }
+
+        #endregion Activar/Desactivar
+
+        #endregion Botones
+
+        #region RadioButtons
+
+        private void radioButtonActivo_CheckedChanged(object sender, EventArgs e)
+        {
+            CargarUsuarios();
+        }
+
+        private void TodosradioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            CargarUsuarios();
+        }
+
+        private void AtributoscheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (AtributoscheckBox.Checked)
+            {
+                MostrarTodasColumnas();
+            }
+            else
+            {
+                OcultarColumnas();
+            }
+        }
+
+        #endregion RadioButtons
+
+        #region Datagrid
+
+        private void dataGridViewUsuarios_SelectionChanged(object sender, EventArgs e)
+        {
+            CargarDatosUsuario();
+        }
+
+        #endregion Datagrid
 
         private void CambiarModo(ModoFormulario modo)
         {
@@ -136,6 +222,7 @@ namespace GUI_234TL
                     ConsultaButton.Enabled = true;
                     Eliminarbutton.Enabled = false;
                     SetSoloLeer(false);
+                    DNItextBox.ReadOnly = true;
                     Blanco();
                     break;
 
@@ -167,67 +254,6 @@ namespace GUI_234TL
             }
         }
 
-        private void CargarUsuarios()
-        {
-            Activo = radioButtonActivo.Checked;
-            var usuarios = bll.GetUsuariosActivos(Activo);
-            dataGridViewUsuarios.DataSource = usuarios;
-            OcultarColumnas();
-            ColorearFilasBloqueadas();
-        }
-
-        private void CrearButton_Click(object sender, EventArgs e)
-        {
-            CambiarModo(ModoFormulario.ModoCrear);
-        }
-
-        private void DesbloquearButton_Click(object sender, EventArgs e)
-        {
-            CambiarModo(ModoFormulario.ModoDesbloquear);
-        }
-
-        private void ModificarButton_Click(object sender, EventArgs e)
-        {
-            CambiarModo(ModoFormulario.ModoModificar);
-        }
-
-        private void ActDesactButton_Click(object sender, EventArgs e)
-        {
-            if (dataGridViewUsuarios.CurrentRow == null)
-            {
-                MessageBox.Show("Seleccione un usuario para activar/desactivar", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
-
-            if (usuario.Rol == RolAdmin)
-            {
-                MessageBox.Show("No se puede activar/desactivar un usuario administrador", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (usuario.Activo)
-            {
-                var Confirmar = MessageBox.Show($"¿Seguro que desea desactivar al usuario “{usuario.Login}”?", "Confirmar desactivación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (Confirmar == DialogResult.Yes)
-                {
-                    bll.DesactivarUsuario(usuario);
-                    MessageBox.Show("Usuario desactivado correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            else
-            {
-                var Confirmar2 = MessageBox.Show($"¿Seguro que desea activar al usuario “{usuario.Login}”?", "Confirmar activación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (Confirmar2 == DialogResult.Yes)
-                {
-                    bll.ActivarUsuario(usuario);
-                    MessageBox.Show("Usuario activado correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            CargarUsuarios();
-            CargarDatosUsuario();
-        }
-
         private void AplicarButton_Click(object sender, EventArgs e)
         {
             switch (ModoActual)
@@ -252,7 +278,7 @@ namespace GUI_234TL
                     nuevousuario.IntentosFallidos = 0;
                     bll.GenerarCredenciales(nuevousuario);
                     bll.Guardar(nuevousuario);
-                    MessageBox.Show("Usuario creado correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Utilitarios_234TL.MensajeExito("Usuario creado correctamente");
                     CargarUsuarios();
                     LimpiarCampos();
                     break;
@@ -261,7 +287,7 @@ namespace GUI_234TL
 
                     if (dataGridViewUsuarios.CurrentRow == null)
                     {
-                        MessageBox.Show("Seleccione un usuario para modificar", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError("Seleccione un usuario para modificar");
                         return;
                     }
 
@@ -269,13 +295,13 @@ namespace GUI_234TL
 
                     if (usuario.Rol == RolAdmin)
                     {
-                        MessageBox.Show("No se puede modificar un usuario administrador", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError("No se puede modificar un usuario Super administrador");
                         return;
                     }
 
                     if (!ERRORUsuario(usuario, out string errormsgmodificar))
                     {
-                        MessageBox.Show(errormsgmodificar, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError(errormsgmodificar);
                         return;
                     }
                     bll.GenerarLogin(usuario);
@@ -290,13 +316,13 @@ namespace GUI_234TL
 
                     if (dataGridViewUsuarios.CurrentRow == null)
                     {
-                        MessageBox.Show("Seleccione un usuario para eliminar", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError("Seleccione un usuario para eliminar");
                         return;
                     }
                     var usuarioeliminar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
                     if (usuarioeliminar.Rol == RolAdmin)
                     {
-                        MessageBox.Show("No se puede eliminar un usuario administrador", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError("No se puede eliminar un usuario administrador");
                         return;
                     }
                     bll.Eliminar(usuarioeliminar);
@@ -307,28 +333,24 @@ namespace GUI_234TL
                 case ModoFormulario.ModoDesbloquear:
                     if (dataGridViewUsuarios.CurrentRow == null)
                     {
-                        MessageBox.Show("Seleccione un usuario para desbloquear", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError("Seleccione un usuario para desbloquear");
                         return;
                     }
                     var usuarioseleccionado = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
                     if (!usuarioseleccionado.Bloqueado)
                     {
-                        MessageBox.Show("Este usuario ya está desbloqueado.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Utilitarios_234TL.MensajeInformacion("El usuario no está bloqueado.");
                         return;
                     }
                     bll.DesbloquearUsuario(usuarioseleccionado);
                     CargarUsuarios();
-                    MessageBox.Show("Usuario desbloqueado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ColorearFilasBloqueadas();
+                    Utilitarios_234TL.MensajeExito("Usuario desbloqueado correctamente");
                     break;
 
                 default:
                     break;
             }
-        }
-
-        private void ConsultaButton_Click(object sender, EventArgs e)
-        {
-            CambiarModo(ModoFormulario.ModoConsulta);
         }
 
         // Devuelve Dos cosas el bool y el out que es un string para decir que mierda esta mal
@@ -339,6 +361,13 @@ namespace GUI_234TL
             bool Crear = ModoActual == ModoFormulario.ModoCrear;
             bool Modificar = ModoActual == ModoFormulario.ModoModificar;
 
+            if (Modificar && DNItextBox.ReadOnly == false)
+            {
+                errormsg = "No está permitido modificar el DNI.";
+                DNItextBox.BackColor = Color.LightPink;
+                return false;
+            }
+
             //DNI
             string dni = DNItextBox.Text.Trim();
             if (string.IsNullOrEmpty(dni))
@@ -348,7 +377,19 @@ namespace GUI_234TL
                 DNItextBox.BackColor = Color.LightPink;
                 return false;
             }
-            usuario.DNI = int.Parse(dni);
+            if (Crear)
+            {
+                usuario.DNI = dni;
+                if (bll.ExisteDni(usuario.DNI))
+                {
+                    errormsg = "El DNI ya existe.";
+                    DNItextBox.Focus();
+                    DNItextBox.BackColor = Color.LightPink;
+                    return false;
+                }
+            }
+
+            usuario.DNI = dni;
             if (Crear && bll.ExisteDni(usuario.DNI))
             {
                 errormsg = "El DNI ya existe.";
@@ -457,47 +498,13 @@ namespace GUI_234TL
             return true;
         }
 
-        private void radioButtonActivo_CheckedChanged(object sender, EventArgs e)
-        {
-            CargarUsuarios();
-        }
-
-        private void TodosradioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            CargarUsuarios();
-        }
-
-        private void dataGridViewUsuarios_SelectionChanged(object sender, EventArgs e)
-        {
-            if (dataGridViewUsuarios.CurrentRow != null)
-            {
-                var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
-                DNItextBox.Text = usuario.DNI.ToString();
-                NombretextBox.Text = usuario.Nombre;
-                ApellidotextBox.Text = usuario.Apellido;
-                EmailtextBox.Text = usuario.Email;
-                RolcomboBox.Text = usuario.Rol;
-            }
-        }
-
-        private void Eliminarbutton_Click(object sender, EventArgs e)
-        {
-            CambiarModo(ModoFormulario.ModoEliminar);
-        }
-
-        private void VerradioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (VerradioButton.Checked)
-            {
-                MostrarTodasColumnas();
-            }
-            else
-            {
-                OcultarColumnas();
-            }
-        }
-
         #region Funciones
+
+        private void AplicarEstiloBoton(Button button)
+        {
+            button.BackColor = ColorTranslator.FromHtml("#007ACC");
+            button.ForeColor = Color.White;
+        }
 
         private void MostrarTodasColumnas()
         {
@@ -544,6 +551,61 @@ namespace GUI_234TL
             ApellidotextBox.BackColor = SystemColors.Window;
             EmailtextBox.BackColor = SystemColors.Window;
             RolcomboBox.BackColor = SystemColors.Window;
+        }
+
+        private void CargarDatosUsuario()
+        {
+            if (dataGridViewUsuarios.CurrentRow != null)
+            {
+                var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
+                DNItextBox.Text = usuario.DNI.ToString();
+                NombretextBox.Text = usuario.Nombre;
+                ApellidotextBox.Text = usuario.Apellido;
+                EmailtextBox.Text = usuario.Email;
+                RolcomboBox.Text = usuario.Rol;
+            }
+        }
+
+        private void OcultarColumnas()
+        {
+            dataGridViewUsuarios.Columns["Login"].Visible = false;
+            dataGridViewUsuarios.Columns["Activo"].Visible = false;
+            dataGridViewUsuarios.Columns["Password"].Visible = false;
+            dataGridViewUsuarios.Columns["IntentosFallidos"].Visible = false;
+            dataGridViewUsuarios.Columns["Bloqueado"].Visible = false;
+            dataGridViewUsuarios.Columns["UltimoIntentoFallido"].Visible = false;
+        }
+
+        private void ColorearFilasBloqueadas()
+        {
+            foreach (DataGridViewRow row in dataGridViewUsuarios.Rows)
+            {
+                if (row.DataBoundItem is Usuario_234TL usuario)
+                {
+                    row.DefaultCellStyle.BackColor = dataGridViewUsuarios.DefaultCellStyle.BackColor;
+                    if (usuario.Bloqueado)
+                    {
+                        row.DefaultCellStyle.BackColor = Color.LightCoral;
+                    }
+                }
+            }
+        }
+
+        private void CargarUsuarios()
+        {
+            var usuarios = bll.GetAll();
+            if (radioButtonActivo.Checked)
+                usuarios = usuarios.Where(u => u.Activo == true).ToList();
+            dataGridViewUsuarios.DataSource = usuarios;
+            if (AtributoscheckBox.Checked)
+                MostrarTodasColumnas();
+            else
+                OcultarColumnas();
+        }
+
+        private void DataGridCompletado(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            ColorearFilasBloqueadas();
         }
 
         #endregion Funciones
