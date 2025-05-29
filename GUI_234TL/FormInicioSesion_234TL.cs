@@ -52,6 +52,8 @@ namespace GUI_234TL
                 {
                     case Resultados_234TL.UsuarioLogueado:
                         Utilitarios_234TL.MensajeError("Ya hay un usuario logueado");
+                        textBox1.Clear();
+                        textBox2.Clear();
                         this.Close();
                         break;
 
@@ -73,6 +75,8 @@ namespace GUI_234TL
 
                     case Resultados_234TL.UsuarioBloqueado:
                         Utilitarios_234TL.MensajeError("El usuario está bloqueado");
+                        textBox1.Clear();
+                        textBox2.Clear();
                         this.Close();
                         break;
 
@@ -86,6 +90,8 @@ namespace GUI_234TL
 
                     case Resultados_234TL.UsuarioInactivo:
                         Utilitarios_234TL.MensajeError("El usuario está inactivo");
+                        textBox1.Clear();
+                        textBox2.Clear();
                         this.Close();
                         break;
                 }

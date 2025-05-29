@@ -43,6 +43,9 @@ namespace GUI_234TL
                 if (!SingletonSesion.GetInstance().IsLoggedIn_234TL())
                 {
                     Utilitarios_234TL.MensajeError("No hay un usuario logueado. No se puede cambiar la contraseña.");
+                    textBox1.Clear();
+                    textBox2.Clear();
+                    textBox3.Clear();
                     this.Close();
                     return;
                 }
@@ -50,6 +53,9 @@ namespace GUI_234TL
                 if (usuario == null)
                 {
                     Utilitarios_234TL.MensajeError("No hay un usuario logueado. No se puede cambiar la contraseña.");
+                    textBox1.Clear();
+                    textBox2.Clear();
+                    textBox3.Clear();
                     this.Close();
                     return;
                 }

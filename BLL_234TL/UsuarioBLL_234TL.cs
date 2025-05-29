@@ -44,6 +44,7 @@ namespace BLL_234TL
         {
             usuario.Bloqueado = false;
             usuario.IntentosFallidos = 0;
+            GenerarCredenciales(usuario);
             _repositorio.Update(usuario);
         }
 
