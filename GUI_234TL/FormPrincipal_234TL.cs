@@ -1,21 +1,35 @@
 using BLL_234TL;
+using Servicios_234TL;
+using Servicios_234TL.Observer_234TL;
 using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormPrincipal_234TL : Form
+    public partial class FormPrincipal_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
         private readonly UsuarioBLL_234TL usuario = new();
+        private Usuario_234TL UsuarioLogueado;
 
         public FormPrincipal_234TL()
         {
             InitializeComponent();
             OcultarBotones();
             this.BackColor = Color.FromArgb(255, 192, 192, 192);
-            var Usuariologueado = usuario.GetUsuarioLogueado();
-            Utilitarios_234TL.CambiarUsuarioToolStrip(toolStripStatusLabel1, Usuariologueado);
+            UsuarioLogueado = usuario.GetUsuarioLogueado();
+            ActualizarUsuarioLogueado(null);
+            Utilitarios_234TL.SuscribirAIdiomas(this);
+            IdiomasManager_234TL.Instancia.CambiarIdioma("es");
         }
+
+        #region FormPrincipal
+
+        private void FormPrincipal_234TL_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Utilitarios_234TL.DesuscribirDeIdiomas(this);
+        }
+
+        #endregion FormPrincipal
 
         #region Sesion
 
@@ -43,7 +57,7 @@ namespace GUI_234TL
 
         private void IniciarSesionButton_Click(object sender, EventArgs e)
         {
-            FormInicioSesion_234TL formInicioSesion = FormInicioSesion_234TL.ObtenerInstancia();
+            FormInicioSesion_234TL formInicioSesion = new FormInicioSesion_234TL();
             formInicioSesion.Owner = this;
             formInicioSesion.StartPosition = FormStartPosition.CenterParent;
             formInicioSesion.ShowDialog(this);
@@ -70,16 +84,17 @@ namespace GUI_234TL
             switch (resultado)
             {
                 case Resultados_234TL.SesionCerrada:
-                    Utilitarios_234TL.MensajeInformacion("Sesión cerrada");
-                    Utilitarios_234TL.CambiarUsuarioToolStrip(toolStripStatusLabel1, null);
+                    Utilitarios_234TL.MensajeInformacion("Mensaje_SesionCerrada");
+                    ActualizarUsuarioLogueado(null);
+                    IdiomasManager_234TL.Instancia.NotificarActuales();
                     break;
 
                 case Resultados_234TL.NoHayLogueado:
-                    Utilitarios_234TL.MensajeAdvertencia("No hay usuario logueado");
+                    Utilitarios_234TL.MensajeAdvertencia("Mensaje_NoHayLogueado");
                     break;
 
                 default:
-                    Utilitarios_234TL.MensajeError("Error al cerrar sesión");
+                    Utilitarios_234TL.MensajeError("Mensaje_ErrorCerrarSesion");
                     break;
             }
         }
@@ -96,25 +111,25 @@ namespace GUI_234TL
 
         #endregion Cerrar Sesion
 
-        #region Perfiles
+        #region Gestion Usuario
 
-        private void PerfilesButton_Click(object sender, EventArgs e)
+        private void GestionUsuarioButton_Click(object sender, EventArgs e)
         {
-            var formPerfiles = FormUsuarios_234TL.ObtenerInstancia();
+            var formPerfiles = new FormUsuarios_234TL();
             MostrarFormularioInterno(formPerfiles, this);
         }
 
-        private void PerfilesButton_MouseHover(object sender, EventArgs e)
+        private void GestionUsuario_MouseHover(object sender, EventArgs e)
         {
-            Utilitarios_234TL.Agrandar(PerfilesButton);
+            Utilitarios_234TL.Agrandar(GestionUsuarioButton);
         }
 
-        private void PerfilesButton_MouseLeave(object sender, EventArgs e)
+        private void GestionUsuario_MouseLeave(object sender, EventArgs e)
         {
-            Utilitarios_234TL.TamañoOriginal(PerfilesButton);
+            Utilitarios_234TL.TamañoOriginal(GestionUsuarioButton);
         }
 
-        #endregion Perfiles
+        #endregion Gestion Usuario
 
         #region Cambiar Contraseña
 
@@ -138,25 +153,25 @@ namespace GUI_234TL
 
         #endregion Cambiar Contraseña
 
-        #region Gestion de Usuarios
+        #region Gestion de Admin
 
-        private void GestionUsuariobutton_MouseHover(object sender, EventArgs e)
+        private void GestionAdminbutton_MouseHover(object sender, EventArgs e)
         {
-            Utilitarios_234TL.Agrandar(GestionUsuariobutton);
+            Utilitarios_234TL.Agrandar(GestionAdminbutton);
         }
 
-        private void GestionUsuariobutton_MouseLeave(object sender, EventArgs e)
+        private void GestionAdminbutton_MouseLeave(object sender, EventArgs e)
         {
-            Utilitarios_234TL.TamañoOriginal(GestionUsuariobutton);
+            Utilitarios_234TL.TamañoOriginal(GestionAdminbutton);
         }
 
-        private void GestionUsuariobutton_Click(object sender, EventArgs e)
+        private void GestionAdminbutton_Click(object sender, EventArgs e)
         {
-            bool activado = PerfilesButton.Visible;
-            PerfilesButton.Visible = !activado;
+            bool activado = GestionUsuarioButton.Visible;
+            GestionUsuarioButton.Visible = !activado;
         }
 
-        #endregion Gestion de Usuarios
+        #endregion Gestion de Admin
 
         #region Funciones
 
@@ -165,7 +180,7 @@ namespace GUI_234TL
             IniciarSesionButton.Visible = false;
             CerrarSesionButton.Visible = false;
             CambiarContraseñabutton.Visible = false;
-            PerfilesButton.Visible = false;
+            GestionUsuarioButton.Visible = false;
         }
 
         private void MostrarFormularioInterno(Form formHijo, Form formPadre)
@@ -189,6 +204,53 @@ namespace GUI_234TL
             formHijo.Show();
         }
 
+        public void ActualizarUsuarioLogueado(Usuario_234TL usuarioLogueado)
+        {
+            UsuarioLogueado = usuarioLogueado;
+        }
+
         #endregion Funciones
+
+        #region IObserver_234TL
+
+        public void Update(Dictionary<string, string> Traduccion)
+        {
+            this.Text = Traduccion["FormPrincipal_234TL_Title"];
+            SesionButton.Text = Traduccion["FormPrincipal_234TL_SesionButton"];
+            IniciarSesionButton.Text = Traduccion["FormPrincipal_234TL_IniciarSesionButton"];
+            CerrarSesionButton.Text = Traduccion["FormPrincipal_234TL_CerrarSesionButton"];
+            CambiarContraseñabutton.Text = Traduccion["FormPrincipal_234TL_CambiarContraseñaButton"];
+            GestionUsuarioButton.Text = Traduccion["FormPrincipal_234TL_GestionUsuariosButton"];
+            GestionAdminbutton.Text = Traduccion["FormPrincipal_234TL_GestionAdminButton"];
+            toolStripStatusLabel1.Text = Traduccion["FormPrincipal_234TL_ToolStripStatusLabel"];
+            PerfilesButton.Text = Traduccion["FormPrincipal_234TL_PerfilesButton"];
+            BackupButton.Text = Traduccion["FormPrincipal_234TL_BackupButton"];
+            RestoreButton.Text = Traduccion["FormPrincipal_234TL_RestoreButton"];
+            BitacoraEButton.Text = Traduccion["FormPrincipal_234TL_BitacoraEButton"];
+            DigVerButton.Text = Traduccion["FormPrincipal_234TL_DigVerButton"];
+            CambiarIdiomaButton.Text = Traduccion["FormPrincipal_234TL_CambiarIdiomaButton"];
+            if (UsuarioLogueado != null)
+            {
+                toolStripStatusLabel1.Text = string.Format(Traduccion.GetValueOrDefault("FormPrincipal_234TL_ToolStripBienvenida", "¡Bienvenido/a, {0}! ¡Que tengas una excelente jornada!"), UsuarioLogueado.Nombre);
+            }
+            else
+            {
+                toolStripStatusLabel1.Text = Traduccion.GetValueOrDefault("FormPrincipal_234TL_ToolStripSinUsuario", "Usuario: No hay usuario logueado");
+            }
+        }
+
+        #endregion IObserver_234TL
+
+       
+
+        private void CambiarIdiomaButton_Click(object sender, EventArgs e)
+        {
+            FormCambiarIdioma_234TL formCambiarIdioma = new();
+            formCambiarIdioma.Owner = this;
+            formCambiarIdioma.StartPosition = FormStartPosition.CenterParent;
+            formCambiarIdioma.ShowDialog(this);
+        }
+
+        
     }
 }

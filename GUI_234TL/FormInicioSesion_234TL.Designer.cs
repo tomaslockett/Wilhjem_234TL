@@ -149,6 +149,7 @@
             Controls.Add(IngresarButton);
             Name = "FormInicioSesion_234TL";
             Text = "Iniciar Sesion";
+            FormClosed += FormInicioSesion_234TL_FormClosed;
             Load += FormInicioSesion_234TL_Load;
             ResumeLayout(false);
             PerformLayout();

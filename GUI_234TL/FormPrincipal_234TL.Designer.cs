@@ -34,9 +34,14 @@
             IniciarSesionButton = new Button();
             CerrarSesionButton = new Button();
             CambiarContraseñabutton = new Button();
-            GestionUsuariobutton = new Button();
+            CambiarIdiomaButton = new Button();
+            GestionAdminbutton = new Button();
+            GestionUsuarioButton = new Button();
             PerfilesButton = new Button();
-            button2 = new Button();
+            BackupButton = new Button();
+            RestoreButton = new Button();
+            BitacoraEButton = new Button();
+            DigVerButton = new Button();
             pictureBox1 = new PictureBox();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
@@ -51,12 +56,17 @@
             flowLayoutPanel1.Controls.Add(IniciarSesionButton);
             flowLayoutPanel1.Controls.Add(CerrarSesionButton);
             flowLayoutPanel1.Controls.Add(CambiarContraseñabutton);
-            flowLayoutPanel1.Controls.Add(GestionUsuariobutton);
+            flowLayoutPanel1.Controls.Add(CambiarIdiomaButton);
+            flowLayoutPanel1.Controls.Add(GestionAdminbutton);
+            flowLayoutPanel1.Controls.Add(GestionUsuarioButton);
             flowLayoutPanel1.Controls.Add(PerfilesButton);
-            flowLayoutPanel1.Controls.Add(button2);
+            flowLayoutPanel1.Controls.Add(BackupButton);
+            flowLayoutPanel1.Controls.Add(RestoreButton);
+            flowLayoutPanel1.Controls.Add(BitacoraEButton);
+            flowLayoutPanel1.Controls.Add(DigVerButton);
             flowLayoutPanel1.Location = new Point(12, 12);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(238, 564);
+            flowLayoutPanel1.Size = new Size(238, 661);
             flowLayoutPanel1.TabIndex = 0;
             // 
             // SesionButton
@@ -107,38 +117,84 @@
             CambiarContraseñabutton.MouseLeave += CambiarContraseñabutton_MouseLeave;
             CambiarContraseñabutton.MouseHover += CambiarContraseñabutton_MouseHover;
             // 
-            // GestionUsuariobutton
+            // CambiarIdiomaButton
             // 
-            GestionUsuariobutton.Location = new Point(3, 179);
-            GestionUsuariobutton.Name = "GestionUsuariobutton";
-            GestionUsuariobutton.Size = new Size(176, 38);
-            GestionUsuariobutton.TabIndex = 5;
-            GestionUsuariobutton.Text = "Gestion Usuario";
-            GestionUsuariobutton.UseVisualStyleBackColor = true;
-            GestionUsuariobutton.Click += GestionUsuariobutton_Click;
-            GestionUsuariobutton.MouseLeave += GestionUsuariobutton_MouseLeave;
-            GestionUsuariobutton.MouseHover += GestionUsuariobutton_MouseHover;
+            CambiarIdiomaButton.Location = new Point(3, 179);
+            CambiarIdiomaButton.Name = "CambiarIdiomaButton";
+            CambiarIdiomaButton.Size = new Size(176, 38);
+            CambiarIdiomaButton.TabIndex = 11;
+            CambiarIdiomaButton.Text = "Cambiar Idioma";
+            CambiarIdiomaButton.UseVisualStyleBackColor = true;
+            CambiarIdiomaButton.Click += CambiarIdiomaButton_Click;
+            // 
+            // GestionAdminbutton
+            // 
+            GestionAdminbutton.Location = new Point(3, 223);
+            GestionAdminbutton.Name = "GestionAdminbutton";
+            GestionAdminbutton.Size = new Size(176, 38);
+            GestionAdminbutton.TabIndex = 5;
+            GestionAdminbutton.Text = "Gestion Admin";
+            GestionAdminbutton.UseVisualStyleBackColor = true;
+            GestionAdminbutton.Click += GestionAdminbutton_Click;
+            GestionAdminbutton.MouseLeave += GestionAdminbutton_MouseLeave;
+            GestionAdminbutton.MouseHover += GestionAdminbutton_MouseHover;
+            // 
+            // GestionUsuarioButton
+            // 
+            GestionUsuarioButton.Location = new Point(3, 267);
+            GestionUsuarioButton.Name = "GestionUsuarioButton";
+            GestionUsuarioButton.Size = new Size(176, 38);
+            GestionUsuarioButton.TabIndex = 4;
+            GestionUsuarioButton.Text = "Gestion Usuario";
+            GestionUsuarioButton.UseVisualStyleBackColor = true;
+            GestionUsuarioButton.Click += GestionUsuarioButton_Click;
+            GestionUsuarioButton.MouseLeave += GestionUsuario_MouseLeave;
+            GestionUsuarioButton.MouseHover += GestionUsuario_MouseHover;
             // 
             // PerfilesButton
             // 
-            PerfilesButton.Location = new Point(3, 223);
+            PerfilesButton.Location = new Point(3, 311);
             PerfilesButton.Name = "PerfilesButton";
             PerfilesButton.Size = new Size(176, 38);
-            PerfilesButton.TabIndex = 4;
+            PerfilesButton.TabIndex = 6;
             PerfilesButton.Text = "Perfiles";
             PerfilesButton.UseVisualStyleBackColor = true;
-            PerfilesButton.Click += PerfilesButton_Click;
-            PerfilesButton.MouseLeave += PerfilesButton_MouseLeave;
-            PerfilesButton.MouseHover += PerfilesButton_MouseHover;
             // 
-            // button2
+            // BackupButton
             // 
-            button2.Location = new Point(3, 267);
-            button2.Name = "button2";
-            button2.Size = new Size(176, 38);
-            button2.TabIndex = 6;
-            button2.Text = ".";
-            button2.UseVisualStyleBackColor = true;
+            BackupButton.Location = new Point(3, 355);
+            BackupButton.Name = "BackupButton";
+            BackupButton.Size = new Size(176, 38);
+            BackupButton.TabIndex = 7;
+            BackupButton.Text = "BackUp";
+            BackupButton.UseVisualStyleBackColor = true;
+            // 
+            // RestoreButton
+            // 
+            RestoreButton.Location = new Point(3, 399);
+            RestoreButton.Name = "RestoreButton";
+            RestoreButton.Size = new Size(176, 38);
+            RestoreButton.TabIndex = 8;
+            RestoreButton.Text = "Restore";
+            RestoreButton.UseVisualStyleBackColor = true;
+            // 
+            // BitacoraEButton
+            // 
+            BitacoraEButton.Location = new Point(3, 443);
+            BitacoraEButton.Name = "BitacoraEButton";
+            BitacoraEButton.Size = new Size(176, 38);
+            BitacoraEButton.TabIndex = 9;
+            BitacoraEButton.Text = "Bitacora_E";
+            BitacoraEButton.UseVisualStyleBackColor = true;
+            // 
+            // DigVerButton
+            // 
+            DigVerButton.Location = new Point(3, 487);
+            DigVerButton.Name = "DigVerButton";
+            DigVerButton.Size = new Size(176, 38);
+            DigVerButton.TabIndex = 10;
+            DigVerButton.Text = "Dig Ver";
+            DigVerButton.UseVisualStyleBackColor = true;
             // 
             // pictureBox1
             // 
@@ -190,12 +246,17 @@
         private Button SesionButton;
         private Button IniciarSesionButton;
         private Button CerrarSesionButton;
-        private Button PerfilesButton;
+        private Button GestionUsuarioButton;
         private Button CambiarContraseñabutton;
-        private Button GestionUsuariobutton;
-        private Button button2;
+        private Button GestionAdminbutton;
+        private Button PerfilesButton;
         private PictureBox pictureBox1;
         private StatusStrip statusStrip1;
         public ToolStripStatusLabel toolStripStatusLabel1;
+        private Button BackupButton;
+        private Button RestoreButton;
+        private Button BitacoraEButton;
+        private Button DigVerButton;
+        private Button CambiarIdiomaButton;
     }
 }

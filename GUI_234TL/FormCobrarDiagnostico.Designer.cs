@@ -161,6 +161,7 @@
             Controls.Add(dataGridView1);
             Name = "FormCobrarDiagnostico";
             Text = "FormCobrarDiagnostico";
+            FormClosed += FormCobrarDiagnostico_FormClosed;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
             ResumeLayout(false);

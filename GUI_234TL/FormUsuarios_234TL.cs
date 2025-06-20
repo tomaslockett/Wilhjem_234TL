@@ -2,23 +2,16 @@
 using Servicios_234TL;
 using System.Text.RegularExpressions;
 using Wilhjem;
+using Servicios_234TL.Observer_234TL;
+using System.Windows.Forms;
+using System.Runtime.CompilerServices;
 
 namespace GUI_234TL
 {
-    public partial class FormUsuarios_234TL : Form
+    public partial class FormUsuarios_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
-        private static FormUsuarios_234TL instancia;
 
         private const string RolAdmin = "SuperAdmin";
-
-        public static FormUsuarios_234TL ObtenerInstancia()
-        {
-            if (instancia == null || instancia.IsDisposed)
-            {
-                instancia = new FormUsuarios_234TL();
-            }
-            return instancia;
-        }
 
         private UsuarioBLL_234TL bll = new BLL_234TL.UsuarioBLL_234TL();
 
@@ -37,6 +30,10 @@ namespace GUI_234TL
             CambiarModo(ModoFormulario.ModoConsulta);
             CargarUsuarios();
             dataGridViewUsuarios.DataBindingComplete += DataGridCompletado;
+            Utilitarios_234TL.SuscribirAIdiomas(this);
+            IdiomasManager_234TL.Instancia.NotificarActuales();
+
+
 
             #region Color Fondo
 
@@ -56,6 +53,7 @@ namespace GUI_234TL
 
             #endregion ColorBotones
         }
+
 
         #region Botones
 
@@ -108,31 +106,35 @@ namespace GUI_234TL
 
         private void ActDesactButton_Click(object sender, EventArgs e)
         {
+            var traducciones = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+
             if (dataGridViewUsuarios.CurrentRow == null)
             {
-                Utilitarios_234TL.MensajeError("Seleccione un usuario para activar/desactivar");
+                Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
                 return;
             }
             var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
 
             if (usuario.Rol == RolAdmin)
             {
-                Utilitarios_234TL.MensajeError("No se puede activar/desactivar un usuario Super administrador");
+                Utilitarios_234TL.MensajeError("Mensaje_NoModificarSuperAdmin");
                 return;
             }
 
             if (usuario.Activo)
             {
-                var Confirmar = MessageBox.Show($"¿Seguro que desea desactivar al usuario “{usuario.Login}”?", "Confirmar desactivación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                string mensaje = string.Format(traducciones["Mensaje_ConfirmarDesactivacion"], usuario.Login);
+                var Confirmar = MessageBox.Show(mensaje, traducciones["MensajeTitulo_Confirmacion"], MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (Confirmar == DialogResult.Yes)
                 {
                     bll.DesactivarUsuario(usuario);
-                    Utilitarios_234TL.MensajeExito("Usuario desactivado correctamente");
+                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesactivado");
                 }
             }
             else
             {
-                var Confirmar2 = MessageBox.Show($"¿Seguro que desea activar al usuario “{usuario.Login}”?", "Confirmar activación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                string mensaje = string.Format(traducciones["Mensaje_ConfirmarActivacion"], usuario.Login);
+                var Confirmar2 = MessageBox.Show(mensaje, traducciones["MensajeTitulo_Confirmacion"], MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (Confirmar2 == DialogResult.Yes)
                 {
                     bll.ActivarUsuario(usuario);
@@ -185,7 +187,7 @@ namespace GUI_234TL
         private void CambiarModo(ModoFormulario modo)
         {
             ModoActual = modo;
-            Modo.Text = $"{modo}";
+            Modo.Text = TraducirModo(modo);
             switch (modo)
             {
                 case ModoFormulario.ModoConsulta:
@@ -267,7 +269,7 @@ namespace GUI_234TL
 
                     if (!ERRORUsuario(nuevousuario, out string errormsg))
                     {
-                        MessageBox.Show(errormsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Utilitarios_234TL.MensajeError(errormsg);
                         return;
                     }
                     //Bloqueado
@@ -278,7 +280,7 @@ namespace GUI_234TL
                     nuevousuario.IntentosFallidos = 0;
                     bll.GenerarCredenciales(nuevousuario);
                     bll.Guardar(nuevousuario);
-                    Utilitarios_234TL.MensajeExito("Usuario creado correctamente");
+                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioCreado");
                     CargarUsuarios();
                     LimpiarCampos();
                     break;
@@ -287,7 +289,7 @@ namespace GUI_234TL
 
                     if (dataGridViewUsuarios.CurrentRow == null)
                     {
-                        Utilitarios_234TL.MensajeError("Seleccione un usuario para modificar");
+                        Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
                         return;
                     }
 
@@ -295,7 +297,7 @@ namespace GUI_234TL
 
                     if (usuario.Rol == RolAdmin)
                     {
-                        Utilitarios_234TL.MensajeError("No se puede modificar un usuario Super administrador");
+                        Utilitarios_234TL.MensajeError("Mensaje_NoModificarSuperAdmin");
                         return;
                     }
 
@@ -306,7 +308,7 @@ namespace GUI_234TL
                     }
                     bll.GenerarLogin(usuario);
                     bll.Update(usuario);
-
+                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioModificado");
                     CargarUsuarios();
                     if (dataGridViewUsuarios.CurrentRow != null)
                         CargarDatosUsuario();
@@ -316,16 +318,17 @@ namespace GUI_234TL
 
                     if (dataGridViewUsuarios.CurrentRow == null)
                     {
-                        Utilitarios_234TL.MensajeError("Seleccione un usuario para eliminar");
+                        Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
                         return;
                     }
                     var usuarioeliminar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
                     if (usuarioeliminar.Rol == RolAdmin)
                     {
-                        Utilitarios_234TL.MensajeError("No se puede eliminar un usuario administrador");
+                        Utilitarios_234TL.MensajeError("Mensaje_NoEliminarAdmin");
                         return;
                     }
                     bll.Eliminar(usuarioeliminar);
+                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioEliminado");
                     CargarUsuarios();
 
                     break;
@@ -333,19 +336,19 @@ namespace GUI_234TL
                 case ModoFormulario.ModoDesbloquear:
                     if (dataGridViewUsuarios.CurrentRow == null)
                     {
-                        Utilitarios_234TL.MensajeError("Seleccione un usuario para desbloquear");
+                        Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
                         return;
                     }
                     var usuarioseleccionado = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
                     if (!usuarioseleccionado.Bloqueado)
                     {
-                        Utilitarios_234TL.MensajeInformacion("El usuario no está bloqueado.");
+                        Utilitarios_234TL.MensajeInformacion("Mensaje_UsuarioNoBloqueado");
                         return;
                     }
                     bll.DesbloquearUsuario(usuarioseleccionado);
                     CargarUsuarios();
                     ColorearFilasBloqueadas();
-                    Utilitarios_234TL.MensajeExito("Usuario desbloqueado correctamente");
+                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesbloqueado");
                     break;
 
                 default:
@@ -363,7 +366,7 @@ namespace GUI_234TL
 
             if (Modificar && DNItextBox.ReadOnly == false)
             {
-                errormsg = "No está permitido modificar el DNI.";
+                errormsg = "Error_ModificarDNI";
                 DNItextBox.BackColor = Color.LightPink;
                 return false;
             }
@@ -372,7 +375,7 @@ namespace GUI_234TL
             string dni = DNItextBox.Text.Trim();
             if (string.IsNullOrEmpty(dni))
             {
-                errormsg = "El campo DNI es obligatorio.";
+                errormsg = "Error_DNI_Requerido";
                 DNItextBox.Focus();
                 DNItextBox.BackColor = Color.LightPink;
                 return false;
@@ -382,7 +385,7 @@ namespace GUI_234TL
                 usuario.DNI = dni;
                 if (bll.ExisteDni(usuario.DNI))
                 {
-                    errormsg = "El DNI ya existe.";
+                    errormsg = "Error_DNI_Existente";
                     DNItextBox.Focus();
                     DNItextBox.BackColor = Color.LightPink;
                     return false;
@@ -392,14 +395,14 @@ namespace GUI_234TL
             usuario.DNI = dni;
             if (Crear && bll.ExisteDni(usuario.DNI))
             {
-                errormsg = "El DNI ya existe.";
+                errormsg = "Error_DNI_Existente";
                 DNItextBox.Focus();
                 DNItextBox.BackColor = Color.LightPink;
                 return false;
             }
             else if (!Crear && bll.ExisteDni(usuario.DNI, usuario.Login))
             {
-                errormsg = "El DNI ya pertenece a otro usuario.";
+                errormsg = "Error_DNI_PerteneceOtro";
                 DNItextBox.Focus();
                 DNItextBox.BackColor = Color.LightPink;
                 return false;
@@ -407,7 +410,7 @@ namespace GUI_234TL
 
             if (!Regex.IsMatch(dni, @"^\d{8}$"))
             {
-                errormsg = "DNI inválido. Debe contener exactamente 8 dígitos.";
+                errormsg = "Error_DNI_Formato";
                 DNItextBox.Focus();
                 DNItextBox.BackColor = Color.LightPink;
                 return false;
@@ -419,14 +422,14 @@ namespace GUI_234TL
             string nombre = NombretextBox.Text.Trim();
             if (string.IsNullOrEmpty(nombre))
             {
-                errormsg = "El campo Nombre es obligatorio.";
+                errormsg = "Error_Nombre_Requerido";
                 NombretextBox.Focus();
                 NombretextBox.BackColor = Color.LightPink;
                 return false;
             }
             if (!Regex.IsMatch(nombre, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
             {
-                errormsg = "Nombre inválido. Solo letras (2–50 caracteres).";
+                errormsg = "Error_Nombre_Formato";
                 NombretextBox.Focus();
                 NombretextBox.BackColor = Color.LightPink;
                 return false;
@@ -438,14 +441,14 @@ namespace GUI_234TL
             string apellido = ApellidotextBox.Text.Trim();
             if (string.IsNullOrEmpty(apellido))
             {
-                errormsg = "El campo Apellido es obligatorio.";
+                errormsg = "Error_Apellido_Requerido";
                 ApellidotextBox.Focus();
                 ApellidotextBox.BackColor = Color.LightPink;
                 return false;
             }
             if (!Regex.IsMatch(apellido, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
             {
-                errormsg = "Apellido inválido. Solo letras (2–50 caracteres).";
+                errormsg = "Error_Apellido_Formato";
                 ApellidotextBox.Focus();
                 ApellidotextBox.BackColor = Color.LightPink;
                 return false;
@@ -457,28 +460,28 @@ namespace GUI_234TL
             string mail = EmailtextBox.Text.Trim();
             if (string.IsNullOrEmpty(mail))
             {
-                errormsg = "El campo Email es obligatorio.";
+                errormsg = "Error_Email_Requerido";
                 EmailtextBox.Focus();
                 EmailtextBox.BackColor = Color.LightPink;
                 return false;
             }
             if (Crear && bll.ExisteEmail(mail))
             {
-                errormsg = "El Email ya está registrado.";
+                errormsg = "Error_Email_Existente";
                 EmailtextBox.Focus();
                 EmailtextBox.BackColor = Color.LightPink;
                 return false;
             }
             else if (!Crear && bll.ExisteEmail(mail, usuario.Login))
             {
-                errormsg = "El Email ya pertenece a otro usuario.";
+                errormsg = "Error_Email_PerteneceOtro";
                 EmailtextBox.Focus();
                 EmailtextBox.BackColor = Color.LightPink;
                 return false;
             }
             if (!Regex.IsMatch(mail, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
             {
-                errormsg = "Formato de Email inválido. Ej: usuario@dominio.com";
+                errormsg = "Error_Email_Formato";
                 EmailtextBox.Focus();
                 EmailtextBox.BackColor = Color.LightPink;
                 return false;
@@ -489,7 +492,7 @@ namespace GUI_234TL
             //Rol
             if (string.IsNullOrEmpty(RolcomboBox.Text))
             {
-                errormsg = "El campo Rol es obligatorio.";
+                errormsg = "Error_Rol_Requerido";
                 RolcomboBox.Focus();
                 return false;
             }
@@ -497,6 +500,8 @@ namespace GUI_234TL
 
             return true;
         }
+
+
 
         #region Funciones
 
@@ -608,6 +613,66 @@ namespace GUI_234TL
             ColorearFilasBloqueadas();
         }
 
+        public void Update(Dictionary<string, string> Traduccion)
+        {
+            this.Text = Traduccion["FormUsuarios_234TL_Title"];
+            CrearButton.Text = Traduccion["FormUsuarios_234TL_CrearButton"];
+            ModificarButton.Text = Traduccion["FormUsuarios_234TL_ModificarButton"];
+            DesbloquearButton.Text = Traduccion["FormUsuarios_234TL_DesbloquearButton"];
+            ActDesactButton.Text = Traduccion["FormUsuarios_234TL_ActivarDesactivarButton"];
+            AplicarButton.Text = Traduccion["FormUsuarios_234TL_AplicarButton"];
+            Eliminarbutton.Text = Traduccion["FormUsuarios_234TL_EliminarButton"];
+            ConsultaButton.Text = Traduccion["FormUsuarios_234TL_ConsultaButton"];
+
+            label1.Text = Traduccion["FormUsuarios_234TL_Label_DNI"];
+            label2.Text = Traduccion["FormUsuarios_234TL_Label_Nombre"];
+            label3.Text = Traduccion["FormUsuarios_234TL_Label_Apellido"];
+            label4.Text = Traduccion["FormUsuarios_234TL_Label_Email"];
+            label5.Text = Traduccion["FormUsuarios_234TL_Label_Rol"];
+            label9.Text = Traduccion["FormUsuarios_234TL_Title"];
+
+            radioButtonActivo.Text = Traduccion["FormUsuarios_234TL_Label_Activos"];
+            TodosradioButton.Text = Traduccion["FormUsuarios_234TL_Label_Todos"];
+            AtributoscheckBox.Text = Traduccion["FormUsuarios_234TL_Label_Atributos"];
+
+            if (dataGridViewUsuarios.Columns.Count > 0)
+            {
+                dataGridViewUsuarios.Columns[0].HeaderText = Traduccion["FormUsuarios_234TL_Label_DNI"];
+                dataGridViewUsuarios.Columns[1].HeaderText = Traduccion["FormUsuarios_234TL_Label_Nombre"];
+                dataGridViewUsuarios.Columns[2].HeaderText = Traduccion["FormUsuarios_234TL_Label_Apellido"];
+                dataGridViewUsuarios.Columns[3].HeaderText = Traduccion["FormUsuarios_234TL_Label_Email"];
+                dataGridViewUsuarios.Columns[4].HeaderText = Traduccion["FormUsuarios_234TL_Label_Rol"];
+                dataGridViewUsuarios.Columns[5].HeaderText = Traduccion["FormUsuarios_234TL_Label_Bloqueado"];
+                dataGridViewUsuarios.Columns[6].HeaderText = Traduccion["FormUsuarios_234TL_Label_Activo"];
+                dataGridViewUsuarios.Columns[7].HeaderText = Traduccion["FormUsuarios_234TL_Label_Login"];
+                dataGridViewUsuarios.Columns[8].HeaderText = Traduccion["FormUsuarios_234TL_Label_Password"];
+                dataGridViewUsuarios.Columns[9].HeaderText = Traduccion["FormUsuarios_234TL_Label_IntentosFallidos"];
+                dataGridViewUsuarios.Columns[10].HeaderText = Traduccion["FormUsuarios_234TL_Label_UltimoIntentoFallido"];
+
+            }
+
+        }
+
+
+        private string TraducirModo(ModoFormulario modo)
+        {
+            try
+            {
+                var traducciones = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+                string clave = modo.ToString();
+                return traducciones[clave];
+            }
+            catch
+            {
+                return modo.ToString();
+            }
+        }
+
         #endregion Funciones
+
+        private void FormUsuarios_234TL_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Utilitarios_234TL.DesuscribirDeIdiomas(this);
+        }
     }
 }

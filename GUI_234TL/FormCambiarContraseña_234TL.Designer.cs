@@ -147,6 +147,7 @@
             Controls.Add(textBox1);
             Name = "FormCambiarContraseña_234TL";
             Text = "Cambiar Contraseña";
+            FormClosed += FormCambiarContraseña_234TL_FormClosed;
             Load += FormCambiarContraseña_234TL_Load;
             ResumeLayout(false);
             PerformLayout();

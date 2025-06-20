@@ -325,6 +325,7 @@
             Controls.Add(dataGridViewUsuarios);
             Name = "FormUsuarios_234TL";
             Text = "Gestion De Usuarios";
+            FormClosed += FormUsuarios_234TL_FormClosed;
             ((System.ComponentModel.ISupportInitialize)dataGridViewUsuarios).EndInit();
             ResumeLayout(false);
             PerformLayout();

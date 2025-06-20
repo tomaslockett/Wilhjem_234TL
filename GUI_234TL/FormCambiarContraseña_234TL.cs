@@ -1,23 +1,14 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
+using Servicios_234TL.Observer_234TL;
 using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormCambiarContraseña_234TL : Form
+    public partial class FormCambiarContraseña_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
-        private static FormCambiarContraseña_234TL instancia;
-
-        public static FormCambiarContraseña_234TL ObtenerInstancia()
-        {
-            if (instancia == null || instancia.IsDisposed)
-            {
-                instancia = new FormCambiarContraseña_234TL();
-            }
-            return instancia;
-        }
-
+        private readonly UsuarioBLL_234TL usuarioBLL = new();
         public FormCambiarContraseña_234TL()
         {
             InitializeComponent();
@@ -28,9 +19,9 @@ namespace GUI_234TL
             textBox2.UseSystemPasswordChar = true;
             textBox3.UseSystemPasswordChar = true;
             this.BackColor = Color.FromArgb(255, 192, 192, 192);
+            Utilitarios_234TL.SuscribirAIdiomas(this);
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
-
-        private readonly UsuarioBLL_234TL usuarioBLL = new();
 
         private void Ingresarbutton_Click(object sender, EventArgs e)
         {
@@ -42,7 +33,7 @@ namespace GUI_234TL
 
                 if (!SingletonSesion.GetInstance().IsLoggedIn_234TL())
                 {
-                    Utilitarios_234TL.MensajeError("No hay un usuario logueado. No se puede cambiar la contraseña.");
+                    Utilitarios_234TL.MensajeError("Mensaje_NoUsuarioLogueado");
                     textBox1.Clear();
                     textBox2.Clear();
                     textBox3.Clear();
@@ -52,7 +43,7 @@ namespace GUI_234TL
                 var usuario = usuarioBLL.GetUsuarioLogueado();
                 if (usuario == null)
                 {
-                    Utilitarios_234TL.MensajeError("No hay un usuario logueado. No se puede cambiar la contraseña.");
+                    Utilitarios_234TL.MensajeError("Mensaje_NoUsuarioLogueado");
                     textBox1.Clear();
                     textBox2.Clear();
                     textBox3.Clear();
@@ -61,13 +52,13 @@ namespace GUI_234TL
                 }
                 if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(nueva) || string.IsNullOrWhiteSpace(confirmacion))
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Por favor, completá todos los campos.");
+                    Utilitarios_234TL.MensajeAdvertencia("Mensaje_CompletarCampos");
                     return;
                 }
 
                 if (nueva != confirmacion)
                 {
-                    Utilitarios_234TL.MensajeError("La nueva contraseña no coincide con la confirmación.");
+                    Utilitarios_234TL.MensajeError("Mensaje_ContraseñaIncorrecta");
                     return;
                 }
 
@@ -75,12 +66,12 @@ namespace GUI_234TL
 
                 if (usuario.Password != Actualpassword)
                 {
-                    Utilitarios_234TL.MensajeError("La contraseña actual es incorrecta");
+                    Utilitarios_234TL.MensajeError("Mensaje_ContraseñaIgualAnterior");
                     return;
                 }
                 if (Encryptador_234TL.SHA256Encrpytar_234TL(nueva) == usuario.Password)
                 {
-                    Utilitarios_234TL.MensajeError("La nueva contraseña no puede ser igual a la actual");
+                    Utilitarios_234TL.MensajeError("Mensaje_ContraseñaIgualAnterior");
                     return;
                 }
                 string nuevaHash = Encryptador_234TL.SHA256Encrpytar_234TL(nueva);
@@ -89,9 +80,10 @@ namespace GUI_234TL
                 usuarioBLL.Logout();
                 if (this.Owner is FormPrincipal_234TL formPrincipal)
                 {
-                    Utilitarios_234TL.CambiarUsuarioToolStrip(formPrincipal.toolStripStatusLabel1, usuarioBLL.GetUsuarioLogueado());
+                    formPrincipal.ActualizarUsuarioLogueado(null);
+                    IdiomasManager_234TL.Instancia.NotificarActuales();
                 }
-                Utilitarios_234TL.MensajeExito("Contraseña cambiada correctamente, va a cerrarse la sesion");
+                Utilitarios_234TL.MensajeExito("Mensaje_ContraseñaCambiada");
                 textBox1.Clear();
                 textBox2.Clear();
                 textBox3.Clear();
@@ -99,7 +91,8 @@ namespace GUI_234TL
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Ocurrió un error inesperado:\n" + ex.Message);
+                var msg = string.Format(IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales()["Mensaje_ErrorInesperado"], ex.Message);
+                MessageBox.Show(msg, IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales()["MensajeTitulo_Error"], MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -129,6 +122,23 @@ namespace GUI_234TL
 
         private void FormCambiarContraseña_234TL_Load(object sender, EventArgs e)
         {
+        }
+
+        public void Update(Dictionary<string, string> Traduccion)
+        {
+            this.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Title"];
+            label1.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Titulo"];
+            label2.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Label_Actual"];
+            label3.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Label_Nueva"];
+            label4.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Label_Confirmar"];
+            Ingresarbutton.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Button_Ingresar"];
+            MostrarButton.Text = Traduccion["FormCambiarContraseñaLabel_234TL_CheckBox_Mostrar"];
+            MostarButton2.Text = Traduccion["FormCambiarContraseñaLabel_234TL_CheckBox_Mostrar2"];
+        }
+
+        private void FormCambiarContraseña_234TL_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Utilitarios_234TL.DesuscribirDeIdiomas(this);
         }
     }
 }

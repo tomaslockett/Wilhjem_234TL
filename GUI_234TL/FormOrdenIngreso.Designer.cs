@@ -137,6 +137,7 @@
             Controls.Add(dataGridView1);
             Name = "FormOrdenIngreso";
             Text = "FormOrdenIngreso";
+            FormClosed += FormOrdenIngreso_FormClosed;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView3).EndInit();

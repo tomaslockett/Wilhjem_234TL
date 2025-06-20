@@ -1,24 +1,14 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
+using Servicios_234TL.Observer_234TL;
 using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormInicioSesion_234TL : Form
+    public partial class FormInicioSesion_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
         private UsuarioBLL_234TL usuarioBLL;
-
-        private static FormInicioSesion_234TL instancia;
-
-        public static FormInicioSesion_234TL ObtenerInstancia()
-        {
-            if (instancia == null || instancia.IsDisposed)
-            {
-                instancia = new FormInicioSesion_234TL();
-            }
-            return instancia;
-        }
 
         public FormInicioSesion_234TL()
         {
@@ -30,7 +20,11 @@ namespace GUI_234TL
             usuarioBLL = new UsuarioBLL_234TL();
             textBox2.UseSystemPasswordChar = true;
             this.BackColor = Color.FromArgb(255, 192, 192, 192);
+            Utilitarios_234TL.SuscribirAIdiomas(this);
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
+
+
 
         private void IngresarButton_Click(object sender, EventArgs e)
         {
@@ -41,55 +35,56 @@ namespace GUI_234TL
             try
             {
                 if (string.IsNullOrEmpty(Login))
-                    throw new Exception("Inserte un login");
+                    throw new Exception("Mensaje_LoginRequerido");
 
                 if (string.IsNullOrEmpty(Password))
-                    throw new Exception("Inserte un password");
+                    throw new Exception("Mensaje_PasswordRequerido");
 
                 var resultado = usuarioBLL.Login(Login, Password);
 
                 switch (resultado)
                 {
                     case Resultados_234TL.UsuarioLogueado:
-                        Utilitarios_234TL.MensajeError("Ya hay un usuario logueado");
+                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioYaLogueado");
                         textBox1.Clear();
                         textBox2.Clear();
                         this.Close();
                         break;
 
                     case Resultados_234TL.UsuarioValido:
-                        Utilitarios_234TL.MensajeExito("Usuario logueado");
+                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioValido");
                         textBox1.Clear();
                         textBox2.Clear();
 
                         if (this.Owner is FormPrincipal_234TL formPrincipal)
                         {
-                            Utilitarios_234TL.CambiarUsuarioToolStrip(formPrincipal.toolStripStatusLabel1, usuarioBLL.GetUsuarioLogueado());
+                            formPrincipal.ActualizarUsuarioLogueado(usuarioBLL.GetUsuarioLogueado());
+                            IdiomasManager_234TL.Instancia.NotificarActuales();
                         }
                         else
                         {
-                            MessageBox.Show("No se pudo actualizar el usuario logueado");
+                            MessageBox.Show("Mensaje_ErrorActualizarUsuario");
                         }
                         this.Close();
                         break;
 
                     case Resultados_234TL.UsuarioBloqueado:
-                        Utilitarios_234TL.MensajeError("El usuario está bloqueado");
+                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioBloqueado");
                         textBox1.Clear();
                         textBox2.Clear();
                         this.Close();
                         break;
 
                     case Resultados_234TL.ContrasenaInvalida:
-                        Utilitarios_234TL.MensajeAdvertencia("Contraseña incorrecta");
+                        Utilitarios_234TL.MensajeAdvertencia("Mensaje_ContrasenaInvalida");
                         break;
 
                     case Resultados_234TL.UsuarioNoExiste:
-                        Utilitarios_234TL.MensajeError("El usuario no existe");
+                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioNoExiste");
                         break;
 
                     case Resultados_234TL.UsuarioInactivo:
-                        Utilitarios_234TL.MensajeError("El usuario está inactivo");
+                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioInactivo");
                         textBox1.Clear();
                         textBox2.Clear();
                         this.Close();
@@ -137,6 +132,24 @@ namespace GUI_234TL
                 this.Owner.Show();
             }
             this.Close();
+        }
+
+        public void Update(Dictionary<string, string> Traduccion)
+        {
+            this.Text = Traduccion["FormInicioSesion_234TL_Title"];
+            label1.Text = Traduccion["FormInicioSesion_234TL_Label_Titulo"];
+            label2.Text = Traduccion["FormInicioSesion_234TL_Label_Usuario"];
+            label3.Text = Traduccion["FormInicioSesion_234TL_Label_Contraseña"];
+            IngresarButton.Text = Traduccion["FormInicioSesion_234TL_Boton_Ingresar"];
+            VolverButton.Text = Traduccion["FormInicioSesion_234TL_Boton_Volver"];
+            label4.Text = Traduccion["FormInicioSesion_234TL_Label_EjemploUsuario"];
+            label5.Text = Traduccion["FormInicioSesion_234TL_Label_EjemploContraseña"];
+            MostrarButton.Text = Traduccion["FormInicioSesion_234TL_CheckBox_MostrarContraseña"];
+        }
+
+        private void FormInicioSesion_234TL_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Utilitarios_234TL.DesuscribirDeIdiomas(this);
         }
     }
 }

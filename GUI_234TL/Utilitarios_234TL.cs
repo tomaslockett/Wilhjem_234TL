@@ -1,5 +1,6 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
+using Servicios_234TL.Observer_234TL;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -25,43 +26,57 @@ namespace Wilhjem
             Boton.Size = new Size((int)(ancho * 1.1), (int)(altura * 1.1));
         }
 
-        public static void CambiarUsuarioToolStrip(ToolStripStatusLabel label, Usuario_234TL usuario)
-        {
-            try
-            {
-                if (usuario != null)
-                {
-                    label.Text = $"¡Bienvenido/a, {usuario.Nombre}! ¡Que tengas una excelente jornada!";
-                }
-                else
-                {
-                    label.Text = "Usuario: No hay usuario logueado";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
+        //public static void CambiarUsuarioToolStrip(ToolStripStatusLabel label, Usuario_234TL usuario)
+        //{
+        //    try
+        //    {
+        //        if (usuario != null)
+        //        {
+        //            label.Text = $"¡Bienvenido/a, {usuario.Nombre}! ¡Que tengas una excelente jornada!";
+        //        }
+        //        else
+        //        {
+        //            label.Text = "Usuario: No hay usuario logueado";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(ex.Message);
+        //    }
+        //}
+        //Basura 
         public static void MensajeInformacion(string mensaje)
         {
-            MessageBox.Show(mensaje, "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Informacion"], MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         public static void MensajeError(string mensaje)
         {
-            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Error"], MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+
 
         public static void MensajeAdvertencia(string mensaje)
         {
-            MessageBox.Show(mensaje, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Advertencia"], MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         public static void MensajeExito(string mensaje)
         {
-            MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Exito"], MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        public static void SuscribirAIdiomas(IObserver_234TL<Dictionary<string, string>> observer)
+        {
+            IdiomasManager_234TL.Instancia.Subscribe(observer);
+        }
+        public static void DesuscribirDeIdiomas(IObserver_234TL<Dictionary<string, string>> observer)
+        {
+            IdiomasManager_234TL.Instancia.Unsubscribe(observer);
         }
     }
 }

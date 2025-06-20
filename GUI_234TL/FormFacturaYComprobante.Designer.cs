@@ -70,6 +70,7 @@
             Controls.Add(dataGridView1);
             Name = "FormFacturaYComprobante";
             Text = "FormFacturaYComprobante";
+            FormClosed += FormFacturaYComprobante_FormClosed;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
         }

@@ -219,6 +219,7 @@
             Controls.Add(dataGridView1);
             Name = "FormIngresoEquipo";
             Text = "FormIngresoEquipo";
+            FormClosed += FormIngresoEquipo_FormClosed;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();
