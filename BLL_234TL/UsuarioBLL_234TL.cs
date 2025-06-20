@@ -145,7 +145,7 @@ namespace BLL_234TL
             return sesion.Usuario;
         }
 
-        // busca un usuario que tenga el mismo dni o que tenga mismo dni y mismo login por si se modifica
+        // busca un usuario que tenga el mismo dni o que tenga mismo dni y mismo login por si se modifica :D
         public bool ExisteDni(string dni, string loginActual = null)
         {
             return GetAll().Any(u => u.DNI == dni && u.Login != loginActual);

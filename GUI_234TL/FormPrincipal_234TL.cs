@@ -173,6 +173,16 @@ namespace GUI_234TL
 
         #endregion Gestion de Admin
 
+        #region Perfiles
+        private void PerfilesButton_Click(object sender, EventArgs e)
+        {
+            FormPerfiles formPerfiles = new FormPerfiles();
+            formPerfiles.Owner = this;
+            formPerfiles.StartPosition = FormStartPosition.CenterParent;
+            formPerfiles.ShowDialog(this);
+        }
+        #endregion
+
         #region Funciones
 
         private void OcultarBotones()
@@ -241,7 +251,7 @@ namespace GUI_234TL
 
         #endregion IObserver_234TL
 
-       
+
 
         private void CambiarIdiomaButton_Click(object sender, EventArgs e)
         {
@@ -251,6 +261,6 @@ namespace GUI_234TL
             formCambiarIdioma.ShowDialog(this);
         }
 
-        
+
     }
 }

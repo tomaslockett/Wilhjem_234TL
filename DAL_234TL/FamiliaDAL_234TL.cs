@@ -10,7 +10,10 @@ namespace DAL_234TL
 {
     public class FamiliaDAL_234TL : AbstractDAL_234TL<Familia_234TL, int>
     {
-        private readonly string connectionString = "Data Source=.;Initial Catalog=Wilhjem_234TL;Integrated Security=True;Trust Server Certificate=True";
+        /// <summary>
+        /// eeeeeeeeee el connectionstring tiene que tener esto si o si ;MultipleActiveResultSets=True"
+        /// </summary>
+        private readonly string connectionString = "Data Source=.;Initial Catalog=Wilhjem_234TL;Integrated Security=True;Trust Server Certificate=True;MultipleActiveResultSets=True";
         public override void Eliminar(Familia_234TL entity)
         {
             try
@@ -208,6 +211,7 @@ namespace DAL_234TL
                 {
                     IdFamilia = Convert.ToInt32(readerHijos["IdFamilia"])
                 };
+                CargarHijosYPermisos(hijo, conexion);
                 familia.AgregarHijo(hijo);
             }
             readerHijos.Close();

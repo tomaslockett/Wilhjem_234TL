@@ -159,6 +159,7 @@
             PerfilesButton.TabIndex = 6;
             PerfilesButton.Text = "Perfiles";
             PerfilesButton.UseVisualStyleBackColor = true;
+            PerfilesButton.Click += PerfilesButton_Click;
             // 
             // BackupButton
             // 
