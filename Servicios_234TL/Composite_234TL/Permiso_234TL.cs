@@ -31,6 +31,11 @@ namespace Servicios_234TL.Composite_234TL
             return new List<IComponente_234TL>();
         }
 
+        public bool EsIgual(IComponente_234TL otro)
+        {
+            return otro is Permiso_234TL p && p.IdPermiso == this.IdPermiso;
+        }
+
         public List<Permiso_234TL> ObtenerPermisos()
         {
             return new List<Permiso_234TL> { this };

@@ -26,7 +26,6 @@ namespace GUI_234TL
 
         private void FormPrincipal_234TL_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Utilitarios_234TL.DesuscribirDeIdiomas(this);
         }
 
         #endregion FormPrincipal
@@ -191,6 +190,8 @@ namespace GUI_234TL
             CerrarSesionButton.Visible = false;
             CambiarContraseñabutton.Visible = false;
             GestionUsuarioButton.Visible = false;
+            CrearOrdenButton.Visible = false;
+            GeneralFacturaYComprobanteButton.Visible = false;
         }
 
         private void MostrarFormularioInterno(Form formHijo, Form formPadre)
@@ -239,6 +240,9 @@ namespace GUI_234TL
             BitacoraEButton.Text = Traduccion["FormPrincipal_234TL_BitacoraEButton"];
             DigVerButton.Text = Traduccion["FormPrincipal_234TL_DigVerButton"];
             CambiarIdiomaButton.Text = Traduccion["FormPrincipal_234TL_CambiarIdiomaButton"];
+            CrearOrdenButton.Text = Traduccion["FormPrincipal_234TL_CrearOrdenButton"];
+            GeneralFacturaYComprobanteButton.Text = Traduccion["FormPrincipal_234TL_GeneralFacturaYComprobanteButton"];
+            RecepcionButton.Text = Traduccion["FormPrincipal_234TL_RecepcionButton"];
             if (UsuarioLogueado != null)
             {
                 toolStripStatusLabel1.Text = string.Format(Traduccion.GetValueOrDefault("FormPrincipal_234TL_ToolStripBienvenida", "¡Bienvenido/a, {0}! ¡Que tengas una excelente jornada!"), UsuarioLogueado.Nombre);
@@ -261,6 +265,27 @@ namespace GUI_234TL
             formCambiarIdioma.ShowDialog(this);
         }
 
+        private void CrearOrdenButton_Click(object sender, EventArgs e)
+        {
+            FormOrdenIngreso formOrdenIngreso = new();
+            formOrdenIngreso.Owner = this;
+            formOrdenIngreso.StartPosition = FormStartPosition.CenterParent;
+            formOrdenIngreso.ShowDialog(this);
+        }
 
+        private void GeneralFacturaYComprobanteButton_Click(object sender, EventArgs e)
+        {
+            FormFacturaYComprobante FormFacturaYComprobante = new();
+            FormFacturaYComprobante.Owner = this;
+            FormFacturaYComprobante.StartPosition = FormStartPosition.CenterParent;
+            FormFacturaYComprobante.ShowDialog(this);
+        }
+
+        private void RecepcionButton_Click(object sender, EventArgs e)
+        {
+            bool activado = CrearOrdenButton.Visible;
+            CrearOrdenButton.Visible = !activado;
+            GeneralFacturaYComprobanteButton.Visible = !activado;
+        }
     }
 }

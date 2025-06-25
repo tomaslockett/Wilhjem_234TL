@@ -29,16 +29,17 @@
         private void InitializeComponent()
         {
             dataGridView1 = new DataGridView();
-            Clientes = new Label();
-            Dni = new Label();
-            Nombre = new Label();
-            label2 = new Label();
-            NumeroTelefonico = new Label();
-            textBox1 = new TextBox();
-            textBox2 = new TextBox();
-            textBox3 = new TextBox();
-            textBox4 = new TextBox();
+            ClientesLabel = new Label();
+            DNILabel = new Label();
+            NombreLabel = new Label();
+            ApellidoLabel = new Label();
+            NumeroTelefonicoLabel = new Label();
+            DNITextBox = new TextBox();
+            NombreTextBox = new TextBox();
+            ApellidoTextBox = new TextBox();
+            TelefonoTextBox = new TextBox();
             RegistrarClientebutton = new Button();
+            EliminarClienteButton = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
@@ -50,104 +51,116 @@
             dataGridView1.Size = new Size(725, 273);
             dataGridView1.TabIndex = 0;
             // 
-            // Clientes
+            // ClientesLabel
             // 
-            Clientes.AutoSize = true;
-            Clientes.Location = new Point(12, 26);
-            Clientes.Name = "Clientes";
-            Clientes.Size = new Size(49, 15);
-            Clientes.TabIndex = 1;
-            Clientes.Text = "Clientes";
+            ClientesLabel.AutoSize = true;
+            ClientesLabel.Font = new Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ClientesLabel.Location = new Point(12, 9);
+            ClientesLabel.Name = "ClientesLabel";
+            ClientesLabel.Size = new Size(90, 30);
+            ClientesLabel.TabIndex = 1;
+            ClientesLabel.Text = "Clientes";
             // 
-            // Dni
+            // DNILabel
             // 
-            Dni.AutoSize = true;
-            Dni.Location = new Point(30, 338);
-            Dni.Name = "Dni";
-            Dni.Size = new Size(25, 15);
-            Dni.TabIndex = 2;
-            Dni.Text = "Dni";
-            Dni.Click += Dni_Click;
+            DNILabel.AutoSize = true;
+            DNILabel.Location = new Point(30, 338);
+            DNILabel.Name = "DNILabel";
+            DNILabel.Size = new Size(27, 15);
+            DNILabel.TabIndex = 2;
+            DNILabel.Text = "DNI";
             // 
-            // Nombre
+            // NombreLabel
             // 
-            Nombre.AutoSize = true;
-            Nombre.Location = new Point(30, 367);
-            Nombre.Name = "Nombre";
-            Nombre.Size = new Size(51, 15);
-            Nombre.TabIndex = 3;
-            Nombre.Text = "Nombre";
+            NombreLabel.AutoSize = true;
+            NombreLabel.Location = new Point(30, 367);
+            NombreLabel.Name = "NombreLabel";
+            NombreLabel.Size = new Size(51, 15);
+            NombreLabel.TabIndex = 3;
+            NombreLabel.Text = "Nombre";
             // 
-            // label2
+            // ApellidoLabel
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(30, 401);
-            label2.Name = "label2";
-            label2.Size = new Size(51, 15);
-            label2.TabIndex = 4;
-            label2.Text = "Apellido";
+            ApellidoLabel.AutoSize = true;
+            ApellidoLabel.Location = new Point(30, 401);
+            ApellidoLabel.Name = "ApellidoLabel";
+            ApellidoLabel.Size = new Size(51, 15);
+            ApellidoLabel.TabIndex = 4;
+            ApellidoLabel.Text = "Apellido";
             // 
-            // NumeroTelefonico
+            // NumeroTelefonicoLabel
             // 
-            NumeroTelefonico.AutoSize = true;
-            NumeroTelefonico.Location = new Point(30, 425);
-            NumeroTelefonico.Name = "NumeroTelefonico";
-            NumeroTelefonico.Size = new Size(109, 15);
-            NumeroTelefonico.TabIndex = 5;
-            NumeroTelefonico.Text = "Numero Telefonico";
+            NumeroTelefonicoLabel.AutoSize = true;
+            NumeroTelefonicoLabel.Location = new Point(30, 425);
+            NumeroTelefonicoLabel.Name = "NumeroTelefonicoLabel";
+            NumeroTelefonicoLabel.Size = new Size(109, 15);
+            NumeroTelefonicoLabel.TabIndex = 5;
+            NumeroTelefonicoLabel.Text = "Numero Telefonico";
             // 
-            // textBox1
+            // DNITextBox
             // 
-            textBox1.Location = new Point(145, 335);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(143, 23);
-            textBox1.TabIndex = 6;
+            DNITextBox.Location = new Point(145, 335);
+            DNITextBox.Name = "DNITextBox";
+            DNITextBox.Size = new Size(143, 23);
+            DNITextBox.TabIndex = 6;
             // 
-            // textBox2
+            // NombreTextBox
             // 
-            textBox2.Location = new Point(145, 364);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(143, 23);
-            textBox2.TabIndex = 7;
+            NombreTextBox.Location = new Point(145, 364);
+            NombreTextBox.Name = "NombreTextBox";
+            NombreTextBox.Size = new Size(143, 23);
+            NombreTextBox.TabIndex = 7;
             // 
-            // textBox3
+            // ApellidoTextBox
             // 
-            textBox3.Location = new Point(144, 393);
-            textBox3.Name = "textBox3";
-            textBox3.Size = new Size(143, 23);
-            textBox3.TabIndex = 8;
+            ApellidoTextBox.Location = new Point(144, 393);
+            ApellidoTextBox.Name = "ApellidoTextBox";
+            ApellidoTextBox.Size = new Size(143, 23);
+            ApellidoTextBox.TabIndex = 8;
             // 
-            // textBox4
+            // TelefonoTextBox
             // 
-            textBox4.Location = new Point(145, 422);
-            textBox4.Name = "textBox4";
-            textBox4.Size = new Size(143, 23);
-            textBox4.TabIndex = 9;
+            TelefonoTextBox.Location = new Point(145, 422);
+            TelefonoTextBox.Name = "TelefonoTextBox";
+            TelefonoTextBox.Size = new Size(143, 23);
+            TelefonoTextBox.TabIndex = 9;
             // 
             // RegistrarClientebutton
             // 
-            RegistrarClientebutton.Location = new Point(376, 336);
+            RegistrarClientebutton.Location = new Point(293, 335);
             RegistrarClientebutton.Name = "RegistrarClientebutton";
             RegistrarClientebutton.Size = new Size(184, 65);
             RegistrarClientebutton.TabIndex = 10;
-            RegistrarClientebutton.Text = "Registrar Cliente";
+            RegistrarClientebutton.Text = "RegistrarCliente";
             RegistrarClientebutton.UseVisualStyleBackColor = true;
+            RegistrarClientebutton.Click += RegistrarClientebutton_Click;
+            // 
+            // EliminarClienteButton
+            // 
+            EliminarClienteButton.Location = new Point(483, 335);
+            EliminarClienteButton.Name = "EliminarClienteButton";
+            EliminarClienteButton.Size = new Size(184, 65);
+            EliminarClienteButton.TabIndex = 11;
+            EliminarClienteButton.Text = "EliminarCliente";
+            EliminarClienteButton.UseVisualStyleBackColor = true;
+            EliminarClienteButton.Click += EliminarClienteButton_Click;
             // 
             // FormRegistrarCliente
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(951, 524);
+            ClientSize = new Size(754, 469);
+            Controls.Add(EliminarClienteButton);
             Controls.Add(RegistrarClientebutton);
-            Controls.Add(textBox4);
-            Controls.Add(textBox3);
-            Controls.Add(textBox2);
-            Controls.Add(textBox1);
-            Controls.Add(NumeroTelefonico);
-            Controls.Add(label2);
-            Controls.Add(Nombre);
-            Controls.Add(Dni);
-            Controls.Add(Clientes);
+            Controls.Add(TelefonoTextBox);
+            Controls.Add(ApellidoTextBox);
+            Controls.Add(NombreTextBox);
+            Controls.Add(DNITextBox);
+            Controls.Add(NumeroTelefonicoLabel);
+            Controls.Add(ApellidoLabel);
+            Controls.Add(NombreLabel);
+            Controls.Add(DNILabel);
+            Controls.Add(ClientesLabel);
             Controls.Add(dataGridView1);
             Name = "FormRegistrarCliente";
             Text = "FormRegistrarCliente";
@@ -160,15 +173,16 @@
         #endregion
 
         private DataGridView dataGridView1;
-        private Label Clientes;
-        private Label Dni;
-        private Label Nombre;
-        private Label label2;
-        private Label NumeroTelefonico;
-        private TextBox textBox1;
-        private TextBox textBox2;
-        private TextBox textBox3;
-        private TextBox textBox4;
+        private Label ClientesLabel;
+        private Label DNILabel;
+        private Label NombreLabel;
+        private Label ApellidoLabel;
+        private Label NumeroTelefonicoLabel;
+        private TextBox DNITextBox;
+        private TextBox NombreTextBox;
+        private TextBox ApellidoTextBox;
+        private TextBox TelefonoTextBox;
         private Button RegistrarClientebutton;
+        private Button EliminarClienteButton;
     }
 }

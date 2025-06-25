@@ -33,6 +33,11 @@ namespace Servicios_234TL.Composite_234TL
         {
             return new List<IComponente_234TL>(Componentes);
         }
+        public bool EliminarComponente(IComponente_234TL componente)
+        {
+            var componenteAEliminar = Componentes.FirstOrDefault(c => c.EsIgual(componente));
+            return componenteAEliminar != null && Componentes.Remove(componenteAEliminar);
+        }
 
         public void AgregarComponente(IComponente_234TL Componente)
         {

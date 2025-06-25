@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BE_234TL\BE_234TL.csproj" />
     <ProjectReference Include="..\Servicios_234TL\Servicios_234TL.csproj" />
   </ItemGroup>
 

@@ -62,82 +62,49 @@ namespace DAL_234TL
                 {
                     while (reader.Read())
                     {
-                        int id = reader.GetInt32(0);
-                        string nombre = reader.GetString(1);
-                        Perfil_234TL perfil = new(nombre) { IdPerfil = id };
-                        perfiles.Add(perfil);
+                        perfiles.Add(new Perfil_234TL(reader.GetString(1))
+                        {
+                            IdPerfil = reader.GetInt32(0)
+                        });
                     }
                 }
 
-                string queryPermisos = @"SELECT p.IdPerfil, pm.IdPermiso, pm.Nombre
-                                          FROM PerfilPermiso_234TL p
-                                          INNER JOIN Permiso_234TL pm ON p.IdPermiso = pm.IdPermiso";
-                using (SqlCommand cmd = new(queryPermisos, conexion))
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        int idPerfil = reader.GetInt32(0);
-                        int idPermiso = reader.GetInt32(1);
-                        string nombrePermiso = reader.GetString(2);
+                var todasFamilias = CargarTodasFamiliasCompletas(conexion);
 
-                        var permiso = new Permiso_234TL(nombrePermiso) { IdPermiso = idPermiso };
-                        perfiles.First(p => p.IdPerfil == idPerfil).AgregarComponente(permiso);
-                    }
-                }
-
-                string queryFamilias = @"SELECT pf.IdPerfil, f.IdFamilia, f.Nombre
-                                          FROM PerfilFamilia_234TL pf
-                                          INNER JOIN Familia_234TL f ON pf.IdFamilia = f.IdFamilia";
-                Dictionary<int, Familia_234TL> cacheFamilias = new();
-                using (SqlCommand cmd = new(queryFamilias, conexion))
+                string queryPerfilFamilias = @"SELECT pf.IdPerfil, pf.IdFamilia
+                                      FROM PerfilFamilia_234TL pf";
+                using (SqlCommand cmd = new(queryPerfilFamilias, conexion))
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         int idPerfil = reader.GetInt32(0);
                         int idFamilia = reader.GetInt32(1);
-                        string nombreFamilia = reader.GetString(2);
 
-                        Familia_234TL familia = new(nombreFamilia) { IdFamilia = idFamilia };
-                        cacheFamilias[idFamilia] = familia;
-                        perfiles.First(p => p.IdPerfil == idPerfil).AgregarComponente(familia);
-                    }
-                }
-
-                string queryPermisosFamilias = @"SELECT ff.IdFamilia, p.IdPermiso, p.Nombre
-                                                 FROM FamiliaPermiso_234TL ff
-                                                 INNER JOIN Permiso_234TL p ON ff.IdPermiso = p.IdPermiso";
-                using (SqlCommand cmd = new(queryPermisosFamilias, conexion))
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        int idFamilia = reader.GetInt32(0);
-                        int idPermiso = reader.GetInt32(1);
-                        string nombre = reader.GetString(2);
-
-                        if (cacheFamilias.TryGetValue(idFamilia, out var familia))
+                        if (todasFamilias.TryGetValue(idFamilia, out var familia))
                         {
-                            familia.AgregarHijo(new Permiso_234TL(nombre) { IdPermiso = idPermiso });
+                            perfiles.First(p => p.IdPerfil == idPerfil)
+                                    .AgregarComponente(familia);
                         }
                     }
                 }
 
-                string queryJerarquia = "SELECT IdPadre, IdHijo FROM FamiliaHijos_234TL";
-                using (SqlCommand cmd = new(queryJerarquia, conexion))
+                string queryPerfilPermisos = @"SELECT pp.IdPerfil, p.IdPermiso, p.Nombre
+                                      FROM PerfilPermiso_234TL pp
+                                      INNER JOIN Permiso_234TL p ON pp.IdPermiso = p.IdPermiso";
+                using (SqlCommand cmd = new(queryPerfilPermisos, conexion))
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        int idPadre = reader.GetInt32(0);
-                        int idHijo = reader.GetInt32(1);
-
-                        if (cacheFamilias.TryGetValue(idPadre, out var padre) &&
-                            cacheFamilias.TryGetValue(idHijo, out var hijo))
+                        int idPerfil = reader.GetInt32(0);
+                        var permiso = new Permiso_234TL(reader.GetString(2))
                         {
-                            padre.AgregarHijo(hijo);
-                        }
+                            IdPermiso = reader.GetInt32(1)
+                        };
+
+                        perfiles.First(p => p.IdPerfil == idPerfil)
+                                .AgregarComponente(permiso);
                     }
                 }
             }
@@ -307,12 +274,81 @@ namespace DAL_234TL
             }
         }
 
+        private Dictionary<int, Familia_234TL> CargarTodasFamiliasCompletas(SqlConnection conexion)
+        {
+            var familias = new Dictionary<int, Familia_234TL>();
+
+            string queryFamilias = "SELECT IdFamilia, Nombre FROM Familia_234TL";
+            using (SqlCommand cmd = new(queryFamilias, conexion))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    familias.Add(reader.GetInt32(0), new Familia_234TL(reader.GetString(1))
+                    {
+                        IdFamilia = reader.GetInt32(0)
+                    });
+                }
+            }
+
+            string queryPermisos = @"SELECT fp.IdFamilia, p.IdPermiso, p.Nombre
+                           FROM FamiliaPermiso_234TL fp
+                           INNER JOIN Permiso_234TL p ON fp.IdPermiso = p.IdPermiso";
+            using (SqlCommand cmd = new(queryPermisos, conexion))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    int idFamilia = reader.GetInt32(0);
+                    if (familias.TryGetValue(idFamilia, out var familia))
+                    {
+                        familia.AgregarHijo(new Permiso_234TL(reader.GetString(2))
+                        {
+                            IdPermiso = reader.GetInt32(1)
+                        });
+                    }
+                }
+            }
+
+            string queryJerarquia = "SELECT IdPadre, IdHijo FROM FamiliaHijos_234TL";
+            using (SqlCommand cmd = new(queryJerarquia, conexion))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    int idPadre = reader.GetInt32(0);
+                    int idHijo = reader.GetInt32(1);
+
+                    if (familias.TryGetValue(idPadre, out var padre) &&
+                        familias.TryGetValue(idHijo, out var hijo))
+                    {
+                        padre.AgregarHijo(hijo);
+                    }
+                }
+            }
+
+            return familias;
+        }
+
         private void InsertarComponentes(Perfil_234TL entity, SqlConnection conexion, SqlTransaction transaccion)
         {
             foreach (var componente in entity.ObtenerComponentes())
             {
                 if (componente is Permiso_234TL permiso)
                 {
+                    string checkQuery = "SELECT COUNT(1) FROM Permiso_234TL WHERE IdPermiso = @IdPermiso";
+                    using (SqlCommand checkCmd = new(checkQuery, conexion, transaccion))
+                    {
+                        checkCmd.Parameters.AddWithValue("@IdPermiso", permiso.IdPermiso);
+                        int exists = (int)checkCmd.ExecuteScalar();
+
+                        if (exists == 0)
+                        {
+                            throw new InvalidOperationException(
+                                $"El permiso con ID {permiso.IdPermiso} no existe en la base de datos");
+                        }
+                    }
+
                     string insertPermiso = "INSERT INTO PerfilPermiso_234TL (IdPerfil, IdPermiso) VALUES (@IdPerfil, @IdPermiso)";
                     using (SqlCommand cmd = new(insertPermiso, conexion, transaccion))
                     {
@@ -323,6 +359,19 @@ namespace DAL_234TL
                 }
                 else if (componente is Familia_234TL familia)
                 {
+                    string checkQuery = "SELECT COUNT(1) FROM Familia_234TL WHERE IdFamilia = @IdFamilia";
+                    using (SqlCommand checkCmd = new(checkQuery, conexion, transaccion))
+                    {
+                        checkCmd.Parameters.AddWithValue("@IdFamilia", familia.IdFamilia);
+                        int exists = (int)checkCmd.ExecuteScalar();
+
+                        if (exists == 0)
+                        {
+                            throw new InvalidOperationException(
+                                $"La familia con ID {familia.IdFamilia} no existe en la base de datos");
+                        }
+                    }
+
                     string insertFamilia = "INSERT INTO PerfilFamilia_234TL (IdPerfil, IdFamilia) VALUES (@IdPerfil, @IdFamilia)";
                     using (SqlCommand cmd = new(insertFamilia, conexion, transaccion))
                     {

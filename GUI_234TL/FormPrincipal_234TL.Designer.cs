@@ -42,6 +42,9 @@
             RestoreButton = new Button();
             BitacoraEButton = new Button();
             DigVerButton = new Button();
+            RecepcionButton = new Button();
+            CrearOrdenButton = new Button();
+            GeneralFacturaYComprobanteButton = new Button();
             pictureBox1 = new PictureBox();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
@@ -64,6 +67,9 @@
             flowLayoutPanel1.Controls.Add(RestoreButton);
             flowLayoutPanel1.Controls.Add(BitacoraEButton);
             flowLayoutPanel1.Controls.Add(DigVerButton);
+            flowLayoutPanel1.Controls.Add(RecepcionButton);
+            flowLayoutPanel1.Controls.Add(CrearOrdenButton);
+            flowLayoutPanel1.Controls.Add(GeneralFacturaYComprobanteButton);
             flowLayoutPanel1.Location = new Point(12, 12);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(238, 661);
@@ -197,6 +203,36 @@
             DigVerButton.Text = "Dig Ver";
             DigVerButton.UseVisualStyleBackColor = true;
             // 
+            // RecepcionButton
+            // 
+            RecepcionButton.Location = new Point(3, 531);
+            RecepcionButton.Name = "RecepcionButton";
+            RecepcionButton.Size = new Size(176, 38);
+            RecepcionButton.TabIndex = 12;
+            RecepcionButton.Text = "Recepcion";
+            RecepcionButton.UseVisualStyleBackColor = true;
+            RecepcionButton.Click += RecepcionButton_Click;
+            // 
+            // CrearOrdenButton
+            // 
+            CrearOrdenButton.Location = new Point(3, 575);
+            CrearOrdenButton.Name = "CrearOrdenButton";
+            CrearOrdenButton.Size = new Size(176, 38);
+            CrearOrdenButton.TabIndex = 13;
+            CrearOrdenButton.Text = "Crear Orden";
+            CrearOrdenButton.UseVisualStyleBackColor = true;
+            CrearOrdenButton.Click += CrearOrdenButton_Click;
+            // 
+            // GeneralFacturaYComprobanteButton
+            // 
+            GeneralFacturaYComprobanteButton.Location = new Point(3, 619);
+            GeneralFacturaYComprobanteButton.Name = "GeneralFacturaYComprobanteButton";
+            GeneralFacturaYComprobanteButton.Size = new Size(176, 38);
+            GeneralFacturaYComprobanteButton.TabIndex = 14;
+            GeneralFacturaYComprobanteButton.Text = "GeneralFacturaYComprobante";
+            GeneralFacturaYComprobanteButton.UseVisualStyleBackColor = true;
+            GeneralFacturaYComprobanteButton.Click += GeneralFacturaYComprobanteButton_Click;
+            // 
             // pictureBox1
             // 
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
@@ -259,5 +295,8 @@
         private Button BitacoraEButton;
         private Button DigVerButton;
         private Button CambiarIdiomaButton;
+        private Button RecepcionButton;
+        private Button CrearOrdenButton;
+        private Button GeneralFacturaYComprobanteButton;
     }
 }

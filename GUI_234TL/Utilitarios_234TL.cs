@@ -47,27 +47,66 @@ namespace Wilhjem
         //Basura 
         public static void MensajeInformacion(string mensaje)
         {
-            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Informacion"], MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+                MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Informacion"], MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Falló la traducción para la clave '{mensaje}': {ex.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        public static void MensajeError(string mensaje)
+        public static void MensajeError(string mensaje, Exception ex = null)
         {
-            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Error"], MessageBoxButtons.OK, MessageBoxIcon.Error);
+            try
+            {
+                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+
+                string titulo = traduccion["MensajeTitulo_Error"];
+                string texto = traduccion[mensaje];
+
+                if (ex != null)
+                {
+                    texto += ex.Message;
+                }
+
+                MessageBox.Show(texto, titulo, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"Falló la traducción para la clave '{mensaje}': {ex2.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
 
         public static void MensajeAdvertencia(string mensaje)
         {
-            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Advertencia"], MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            try
+            {
+                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+                MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Advertencia"], MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Falló la traducción para la clave '{mensaje}': {ex.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        public static void MensajeExito(string mensaje)
+        public static void MensajeExito(string clave, params object[] args)
         {
-            var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-            MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Exito"], MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+                string mensaje = string.Format(traduccion[clave], args);
+                string titulo = traduccion["MensajeTitulo_Exito"];
+                MessageBox.Show(mensaje, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Falló la traducción para la clave '{clave}': {ex.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public static void SuscribirAIdiomas(IObserver_234TL<Dictionary<string, string>> observer)

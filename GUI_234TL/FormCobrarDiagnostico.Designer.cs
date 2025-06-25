@@ -28,159 +28,117 @@
         /// </summary>
         private void InitializeComponent()
         {
-            dataGridView1 = new DataGridView();
-            button1 = new Button();
-            dataGridView2 = new DataGridView();
-            label1 = new Label();
-            textBox1 = new TextBox();
-            textBox2 = new TextBox();
-            label2 = new Label();
-            textBox3 = new TextBox();
-            label3 = new Label();
-            textBox4 = new TextBox();
-            label4 = new Label();
-            button2 = new Button();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
+            dataGridViewReparaciones = new DataGridView();
+            CobrarButton = new Button();
+            NumeroTarjetaLabel = new Label();
+            NumeroTarjetaTextBox = new TextBox();
+            CodigoSeguridadTextBox = new TextBox();
+            VencimientoLabel = new Label();
+            VencimientoTextBox = new TextBox();
+            CodigoSeguridadLabel = new Label();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewReparaciones).BeginInit();
             SuspendLayout();
             // 
-            // dataGridView1
+            // dataGridViewReparaciones
             // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(19, 19);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(420, 291);
-            dataGridView1.TabIndex = 0;
+            dataGridViewReparaciones.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewReparaciones.Location = new Point(30, 31);
+            dataGridViewReparaciones.Name = "dataGridViewReparaciones";
+            dataGridViewReparaciones.Size = new Size(697, 291);
+            dataGridViewReparaciones.TabIndex = 0;
             // 
-            // button1
+            // CobrarButton
             // 
-            button1.Location = new Point(19, 364);
-            button1.Name = "button1";
-            button1.Size = new Size(170, 59);
-            button1.TabIndex = 1;
-            button1.Text = "Cobrar ";
-            button1.UseVisualStyleBackColor = true;
+            CobrarButton.Location = new Point(274, 328);
+            CobrarButton.Name = "CobrarButton";
+            CobrarButton.Size = new Size(170, 59);
+            CobrarButton.TabIndex = 1;
+            CobrarButton.Text = "Cobrar ";
+            CobrarButton.UseVisualStyleBackColor = true;
+            CobrarButton.Click += CobrarButton_Click;
             // 
-            // dataGridView2
+            // NumeroTarjetaLabel
             // 
-            dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView2.Location = new Point(643, 19);
-            dataGridView2.Name = "dataGridView2";
-            dataGridView2.Size = new Size(420, 291);
-            dataGridView2.TabIndex = 2;
+            NumeroTarjetaLabel.AutoSize = true;
+            NumeroTarjetaLabel.Location = new Point(29, 329);
+            NumeroTarjetaLabel.Name = "NumeroTarjetaLabel";
+            NumeroTarjetaLabel.Size = new Size(89, 15);
+            NumeroTarjetaLabel.TabIndex = 3;
+            NumeroTarjetaLabel.Text = "Numero Tarjeta";
             // 
-            // label1
+            // NumeroTarjetaTextBox
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(643, 341);
-            label1.Name = "label1";
-            label1.Size = new Size(89, 15);
-            label1.TabIndex = 3;
-            label1.Text = "Numero Tarjeta";
+            NumeroTarjetaTextBox.Location = new Point(125, 329);
+            NumeroTarjetaTextBox.Name = "NumeroTarjetaTextBox";
+            NumeroTarjetaTextBox.Size = new Size(132, 23);
+            NumeroTarjetaTextBox.TabIndex = 4;
             // 
-            // textBox1
+            // CodigoSeguridadTextBox
             // 
-            textBox1.Location = new Point(738, 341);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(132, 23);
-            textBox1.TabIndex = 4;
+            CodigoSeguridadTextBox.Location = new Point(125, 358);
+            CodigoSeguridadTextBox.Name = "CodigoSeguridadTextBox";
+            CodigoSeguridadTextBox.Size = new Size(132, 23);
+            CodigoSeguridadTextBox.TabIndex = 8;
             // 
-            // textBox2
+            // VencimientoLabel
             // 
-            textBox2.Location = new Point(738, 383);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(132, 23);
-            textBox2.TabIndex = 6;
+            VencimientoLabel.AutoSize = true;
+            VencimientoLabel.Location = new Point(30, 387);
+            VencimientoLabel.Name = "VencimientoLabel";
+            VencimientoLabel.Size = new Size(73, 15);
+            VencimientoLabel.TabIndex = 9;
+            VencimientoLabel.Text = "Vencimiento";
             // 
-            // label2
+            // VencimientoTextBox
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(643, 383);
-            label2.Name = "label2";
-            label2.Size = new Size(42, 15);
-            label2.TabIndex = 5;
-            label2.Text = "Dueño";
+            VencimientoTextBox.Location = new Point(125, 384);
+            VencimientoTextBox.Name = "VencimientoTextBox";
+            VencimientoTextBox.Size = new Size(132, 23);
+            VencimientoTextBox.TabIndex = 10;
             // 
-            // textBox3
+            // CodigoSeguridadLabel
             // 
-            textBox3.Location = new Point(738, 428);
-            textBox3.Name = "textBox3";
-            textBox3.Size = new Size(132, 23);
-            textBox3.TabIndex = 8;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Location = new Point(630, 431);
-            label3.Name = "label3";
-            label3.Size = new Size(102, 15);
-            label3.TabIndex = 7;
-            label3.Text = "Codigo Seguridad";
-            // 
-            // textBox4
-            // 
-            textBox4.Location = new Point(738, 482);
-            textBox4.Name = "textBox4";
-            textBox4.Size = new Size(132, 23);
-            textBox4.TabIndex = 10;
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(643, 482);
-            label4.Name = "label4";
-            label4.Size = new Size(73, 15);
-            label4.TabIndex = 9;
-            label4.Text = "Vencimiento";
-            // 
-            // button2
-            // 
-            button2.Location = new Point(893, 341);
-            button2.Name = "button2";
-            button2.Size = new Size(170, 59);
-            button2.TabIndex = 11;
-            button2.Text = "Registrar forma de pago";
-            button2.UseVisualStyleBackColor = true;
+            CodigoSeguridadLabel.AutoSize = true;
+            CodigoSeguridadLabel.Location = new Point(16, 361);
+            CodigoSeguridadLabel.Name = "CodigoSeguridadLabel";
+            CodigoSeguridadLabel.Size = new Size(102, 15);
+            CodigoSeguridadLabel.TabIndex = 11;
+            CodigoSeguridadLabel.Text = "Codigo Seguridad";
             // 
             // FormCobrarDiagnostico
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1093, 588);
-            Controls.Add(button2);
-            Controls.Add(textBox4);
-            Controls.Add(label4);
-            Controls.Add(textBox3);
-            Controls.Add(label3);
-            Controls.Add(textBox2);
-            Controls.Add(label2);
-            Controls.Add(textBox1);
-            Controls.Add(label1);
-            Controls.Add(dataGridView2);
-            Controls.Add(button1);
-            Controls.Add(dataGridView1);
+            ClientSize = new Size(769, 429);
+            Controls.Add(CodigoSeguridadLabel);
+            Controls.Add(VencimientoTextBox);
+            Controls.Add(VencimientoLabel);
+            Controls.Add(CodigoSeguridadTextBox);
+            Controls.Add(NumeroTarjetaTextBox);
+            Controls.Add(NumeroTarjetaLabel);
+            Controls.Add(CobrarButton);
+            Controls.Add(dataGridViewReparaciones);
             Name = "FormCobrarDiagnostico";
             Text = "FormCobrarDiagnostico";
             FormClosed += FormCobrarDiagnostico_FormClosed;
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewReparaciones).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private DataGridView dataGridView1;
-        private Button button1;
-        private DataGridView dataGridView2;
-        private Label label1;
-        private TextBox textBox1;
+        private DataGridView dataGridViewReparaciones;
+        private Button CobrarButton;
+        private Label NumeroTarjetaLabel;
+        private TextBox NumeroTarjetaTextBox;
         private TextBox textBox2;
         private Label label2;
-        private TextBox textBox3;
+        private TextBox CodigoSeguridadTextBox;
         private Label label3;
         private TextBox textBox4;
-        private Label label4;
-        private Button button2;
+        private Label VencimientoLabel;
+        private TextBox VencimientoTextBox;
+        private Label CodigoSeguridadLabel;
     }
 }

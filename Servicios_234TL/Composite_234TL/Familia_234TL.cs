@@ -25,6 +25,11 @@ namespace Servicios_234TL.Composite_234TL
             hijos.Remove(hijo);
         }
 
+        public bool EsIgual(IComponente_234TL otro)
+        {
+            return otro is Familia_234TL f && f.IdFamilia == this.IdFamilia;
+        }
+
         public List<IComponente_234TL> ObtenerHijos()
         {
             return new List<IComponente_234TL>(hijos);

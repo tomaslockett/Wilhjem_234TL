@@ -28,57 +28,72 @@
         /// </summary>
         private void InitializeComponent()
         {
-            dataGridView1 = new DataGridView();
-            button1 = new Button();
-            button2 = new Button();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            dataGridViewReparaciones = new DataGridView();
+            CrearFacturaButton = new Button();
+            CrearComprobanteButton = new Button();
+            CobrarDiagnosticoButton = new Button();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewReparaciones).BeginInit();
             SuspendLayout();
             // 
-            // dataGridView1
+            // dataGridViewReparaciones
             // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(12, 22);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(877, 258);
-            dataGridView1.TabIndex = 0;
+            dataGridViewReparaciones.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewReparaciones.Location = new Point(12, 22);
+            dataGridViewReparaciones.Name = "dataGridViewReparaciones";
+            dataGridViewReparaciones.Size = new Size(877, 258);
+            dataGridViewReparaciones.TabIndex = 0;
             // 
-            // button1
+            // CrearFacturaButton
             // 
-            button1.Location = new Point(10, 315);
-            button1.Name = "button1";
-            button1.Size = new Size(180, 54);
-            button1.TabIndex = 2;
-            button1.Text = "Crear Factura";
-            button1.UseVisualStyleBackColor = true;
+            CrearFacturaButton.Location = new Point(523, 315);
+            CrearFacturaButton.Name = "CrearFacturaButton";
+            CrearFacturaButton.Size = new Size(180, 54);
+            CrearFacturaButton.TabIndex = 2;
+            CrearFacturaButton.Text = "Crear Factura";
+            CrearFacturaButton.UseVisualStyleBackColor = true;
+            CrearFacturaButton.Click += CrearFacturaButton_Click;
             // 
-            // button2
+            // CrearComprobanteButton
             // 
-            button2.Location = new Point(196, 315);
-            button2.Name = "button2";
-            button2.Size = new Size(180, 54);
-            button2.TabIndex = 3;
-            button2.Text = "Crear Comprobante";
-            button2.UseVisualStyleBackColor = true;
+            CrearComprobanteButton.Location = new Point(709, 315);
+            CrearComprobanteButton.Name = "CrearComprobanteButton";
+            CrearComprobanteButton.Size = new Size(180, 54);
+            CrearComprobanteButton.TabIndex = 3;
+            CrearComprobanteButton.Text = "Crear Comprobante";
+            CrearComprobanteButton.UseVisualStyleBackColor = true;
+            CrearComprobanteButton.Click += CrearComprobanteButton_Click;
+            // 
+            // CobrarDiagnosticoButton
+            // 
+            CobrarDiagnosticoButton.Location = new Point(12, 315);
+            CobrarDiagnosticoButton.Name = "CobrarDiagnosticoButton";
+            CobrarDiagnosticoButton.Size = new Size(180, 54);
+            CobrarDiagnosticoButton.TabIndex = 4;
+            CobrarDiagnosticoButton.Text = "CobrarDiagnostico";
+            CobrarDiagnosticoButton.UseVisualStyleBackColor = true;
+            CobrarDiagnosticoButton.Click += CobrarDiagnosticoButton_Click;
             // 
             // FormFacturaYComprobante
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(914, 581);
-            Controls.Add(button2);
-            Controls.Add(button1);
-            Controls.Add(dataGridView1);
+            ClientSize = new Size(914, 402);
+            Controls.Add(CobrarDiagnosticoButton);
+            Controls.Add(CrearComprobanteButton);
+            Controls.Add(CrearFacturaButton);
+            Controls.Add(dataGridViewReparaciones);
             Name = "FormFacturaYComprobante";
             Text = "FormFacturaYComprobante";
             FormClosed += FormFacturaYComprobante_FormClosed;
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewReparaciones).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private DataGridView dataGridView1;
-        private Button button1;
-        private Button button2;
+        private DataGridView dataGridViewReparaciones;
+        private Button CrearFacturaButton;
+        private Button CrearComprobanteButton;
+        private Button CobrarDiagnosticoButton;
     }
 }

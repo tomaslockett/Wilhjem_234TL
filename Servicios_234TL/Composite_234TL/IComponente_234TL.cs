@@ -11,6 +11,7 @@ namespace Servicios_234TL.Composite_234TL
         void AgregarHijo(IComponente_234TL hijo);
         void EliminarHijo(IComponente_234TL hijo);
 
+        bool EsIgual(IComponente_234TL otro);
         List<IComponente_234TL> ObtenerHijos();
         List<Permiso_234TL> ObtenerPermisos();
     }

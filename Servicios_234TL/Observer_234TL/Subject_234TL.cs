@@ -24,14 +24,14 @@ namespace Servicios_234TL.Observer_234TL
 
         public void Unsubscribe(IObserver_234TL<T> observer)
         {
-            if (observers.Contains(observer))
-            {
-                observers.Remove(observer);
-            }
-            else
-            {
-                throw new ArgumentException("El observador no está suscrito.");
-            }
+            //if (observers.Contains(observer))
+            //{
+            //    observers.Remove(observer);
+            //}
+            //else
+            //{
+            //     throw new ArgumentException("El observador no está suscrito.");
+            //}
         }
 
         protected void Notify(T data)
