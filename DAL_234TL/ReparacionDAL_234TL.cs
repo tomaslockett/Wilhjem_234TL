@@ -5,6 +5,7 @@ namespace DAL_234TL
 {
     public class ReparacionDAL_234TL : AbstractDAL_234TL<Reparacion_234TL, int>
     {
+        //TrustServerCertificate=True";
         private readonly string connectionString = "Data Source=.;Initial Catalog=Wilhjem_234TL;Integrated Security=True;TrustServerCertificate=True";
 
         public override void Guardar(Reparacion_234TL entity)

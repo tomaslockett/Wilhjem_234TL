@@ -10,6 +10,7 @@ namespace DAL_234TL
 {
     public class TecnicoDAL_234TL : AbstractDAL_234TL<Tecnico_234TL, string>
     {
+        //TrustServerCertificate=True";
         private readonly string connectionString = "Data Source=.;Initial Catalog=Wilhjem_234TL;Integrated Security=True;TrustServerCertificate=True";
 
         public override void Guardar(Tecnico_234TL entity)
