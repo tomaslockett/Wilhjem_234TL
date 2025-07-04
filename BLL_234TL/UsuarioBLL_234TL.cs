@@ -1,13 +1,22 @@
 ﻿using DAL_234TL;
 using Servicios_234TL;
+using Servicios_234TL.Composite_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Singleton_234TL;
+using System.Text.RegularExpressions;
 
 namespace BLL_234TL
 {
     public class UsuarioBLL_234TL : AbstractaBLL_234TL<Usuario_234TL, string>
     {
+        private readonly PerfilBLL_234TL _perfilBLL;
         public UsuarioBLL_234TL() : base(new UsuarioDAL_234TL())
         {
+            _perfilBLL = new PerfilBLL_234TL();
+        }
+        public IList<Perfil_234TL> ObtenerPerfilesDisponibles()
+        {
+            return _perfilBLL.GetAll();
         }
 
         public IList<Usuario_234TL> GetUsuariosActivos(bool Activos)
@@ -44,6 +53,7 @@ namespace BLL_234TL
         {
             usuario.Bloqueado = false;
             usuario.IntentosFallidos = 0;
+            usuario.UltimoIntentoFallido = null;
             GenerarCredenciales(usuario);
             _repositorio.Update(usuario);
         }
@@ -60,68 +70,81 @@ namespace BLL_234TL
             _repositorio.Update(usuario);
         }
 
-        public Resultados_234TL Login(string login, string password)
+        public void Login(string login, string password)
         {
-            if (login == "superadmin" && password == Encryptador_234TL.SHA256Encrpytar_234TL("superadmin"))
+            if (string.IsNullOrWhiteSpace(login))
             {
+                throw new InvalidOperationException("El campo 'usuario' es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                throw new InvalidOperationException("El campo 'contraseña' es obligatorio.");
+            }
+
+            var sesion = SingletonSesion.GetInstance();
+            if (sesion.IsLoggedIn_234TL())
+            {
+                throw new Exception("Ya existe una sesión activa en el sistema.");
+            }
+
+            var passwordHasheada = Encryptador_234TL.SHA256Encrpytar_234TL(password);
+
+            if (login.Equals("superadmin", StringComparison.OrdinalIgnoreCase) &&
+                passwordHasheada == Encryptador_234TL.SHA256Encrpytar_234TL("superadmin"))
+            {
+                var perfilAdmin = new Perfil_234TL("SuperAdmin");
                 var superadmin = new Usuario_234TL
                 {
-                    Login = login,
-                    Password = password,
-                    Rol = "SuperAdmin",
+                    Login = "superadmin",
+                    Perfil = perfilAdmin,
+                    Nombre = "Super",
+                    Apellido = "Admin",
                     Activo = true,
                     Bloqueado = false
                 };
-                SingletonSesion.GetInstance().Login_234TL(superadmin);
-                return Resultados_234TL.UsuarioValido;
+                sesion.Login_234TL(superadmin);
+                return;
             }
-            if (string.IsNullOrEmpty(login) || string.IsNullOrWhiteSpace(password))
-                return Resultados_234TL.ContrasenaInvalida;
-            var sesion = SingletonSesion.GetInstance();
 
-            if (sesion.IsLoggedIn_234TL())
-                return Resultados_234TL.UsuarioLogueado;
+            var usuario = _repositorio.GetAll().FirstOrDefault(u => u.Login == login);
 
-            var usuario = _repositorio.GetAll().Where(u => u.Login == login).FirstOrDefault();
-
-            if (usuario == null)
-                return Resultados_234TL.UsuarioNoExiste;
-
-            if (usuario.Activo == false)
-                return Resultados_234TL.UsuarioInactivo;
-
-            if (usuario.IntentosFallidos >= 2 && usuario.UltimoIntentoFallido.HasValue)
+            if (usuario == null || usuario.Password != passwordHasheada)
             {
-                var diferencia = DateTime.Now - usuario.UltimoIntentoFallido.Value;
-                if (diferencia.TotalHours >= 3)
+                if (usuario != null)
                 {
-                    usuario.IntentosFallidos = 0;
-                    usuario.UltimoIntentoFallido = null;
+                    usuario.IntentosFallidos++;
+                    usuario.UltimoIntentoFallido = DateTime.Now;
+                    if (usuario.IntentosFallidos >= 3)
+                    {
+                        usuario.Bloqueado = true;
+                    }
                     _repositorio.Update(usuario);
-                }
-            }
-            if (usuario.Bloqueado == true)
-                return Resultados_234TL.UsuarioBloqueado;
 
-            if (usuario.Password != password)
-            {
-                usuario.IntentosFallidos++;
-                usuario.UltimoIntentoFallido = DateTime.Now;
-                if (usuario.IntentosFallidos >= 3)
-                {
-                    usuario.Bloqueado = true;
-                    _repositorio.Update(usuario);
-                    return Resultados_234TL.UsuarioBloqueado;
+                    if (usuario.Bloqueado)
+                    {
+                        throw new InvalidOperationException("La cuenta ha sido bloqueada por múltiples intentos fallidos.");
+                    }
                 }
-                _repositorio.Update(usuario);
-                return Resultados_234TL.ContrasenaInvalida;
+
+                throw new InvalidOperationException("El usuario o la contraseña son incorrectos.");
             }
+
+            if (!usuario.Activo)
+            {
+                throw new Exception("Esta cuenta de usuario se encuentra inactiva.");
+            }
+
+            if (usuario.Bloqueado)
+            {
+                throw new InvalidOperationException("La cuenta de usuario se encuentra bloqueada.");
+            }
+
             usuario.IntentosFallidos = 0;
             usuario.UltimoIntentoFallido = null;
             _repositorio.Update(usuario);
 
             sesion.Login_234TL(usuario);
-            return Resultados_234TL.UsuarioValido;
         }
 
         public Resultados_234TL Logout()
@@ -145,6 +168,117 @@ namespace BLL_234TL
             return sesion.Usuario;
         }
 
+        public void CrearNuevoUsuario(Usuario_234TL usuario)
+        {
+            if (usuario.Perfil == null)
+            {
+                throw new ValidacionesException_234TL("Debe seleccionar un perfil para el usuario.", "Perfil");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.DNI))
+            {
+                throw new ValidacionesException_234TL("El DNI es requerido.", "DNI");
+            }
+
+            if (!Regex.IsMatch(usuario.DNI, @"^\d{8}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del DNI no es válido, deben ser 8 dígitos numéricos.", "DNI");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Nombre))
+            {
+                throw new ValidacionesException_234TL("El Nombre es requerido.", "Nombre");
+            }
+
+            if (!Regex.IsMatch(usuario.Nombre, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del Nombre no es válido (solo letras, de 2 a 50 caracteres).", "Nombre");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Apellido))
+            {
+                throw new ValidacionesException_234TL("El Apellido es requerido.", "Apellido");
+            }
+
+            if (!Regex.IsMatch(usuario.Apellido, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del Apellido no es válido (solo letras, de 2 a 50 caracteres).", "Apellido");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Email))
+            {
+                throw new ValidacionesException_234TL("El Email es requerido.", "Email");
+            }
+
+            if (!Regex.IsMatch(usuario.Email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del Email no es válido.", "Email");
+            }
+
+            if (ExisteDni(usuario.DNI))
+            {
+                throw new ValidacionesException_234TL("El DNI ingresado ya pertenece a otro usuario.", "DNI");
+            }
+
+            if (ExisteEmail(usuario.Email))
+            {
+                throw new ValidacionesException_234TL("El Email ingresado ya pertenece a otro usuario.", "Email");
+            }
+
+            usuario.Bloqueado = false;
+            usuario.Activo = true;
+            usuario.IntentosFallidos = 0;
+            GenerarCredenciales(usuario);
+
+            _repositorio.Guardar(usuario);
+        }
+
+        public void ModificarUsuario(Usuario_234TL usuario)
+        {
+            if (usuario.Perfil == null)
+            {
+                throw new ValidacionesException_234TL("Debe seleccionar un perfil para el usuario.", "Perfil");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Nombre))
+            {
+                throw new ValidacionesException_234TL("El Nombre es requerido.", "Nombre");
+            }
+
+            if (!Regex.IsMatch(usuario.Nombre, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del Nombre no es válido (solo letras, de 2 a 50 caracteres).", "Nombre");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Apellido))
+            {
+                throw new ValidacionesException_234TL("El Apellido es requerido.", "Apellido");
+            }
+
+            if (!Regex.IsMatch(usuario.Apellido, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del Apellido no es válido (solo letras, de 2 a 50 caracteres).", "Apellido");
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Email))
+            {
+                throw new ValidacionesException_234TL("El Email es requerido.", "Email");
+            }
+
+            if (!Regex.IsMatch(usuario.Email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+            {
+                throw new ValidacionesException_234TL("El formato del Email no es válido.", "Email");
+            }
+
+            if (ExisteEmail(usuario.Email, usuario.Login))
+            {
+                throw new ValidacionesException_234TL("El Email ingresado ya pertenece a otro usuario.", "Email");
+            }
+
+            GenerarLogin(usuario);
+            _repositorio.Update(usuario);
+        }
+
         // busca un usuario que tenga el mismo dni o que tenga mismo dni y mismo login por si se modifica :D
         public bool ExisteDni(string dni, string loginActual = null)
         {
@@ -155,5 +289,6 @@ namespace BLL_234TL
         {
             return GetAll().Any(u => u.Email == Email && u.Login != loginActual);
         }
+
     }
 }

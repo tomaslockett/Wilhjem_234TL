@@ -1,4 +1,6 @@
-﻿namespace Servicios_234TL
+﻿using Servicios_234TL.Composite_234TL;
+
+namespace Servicios_234TL
 {
     public class Usuario_234TL
     {
@@ -6,7 +8,7 @@
         public string Nombre { get; set; }
         public string Apellido { get; set; }
         public string Email { get; set; }
-        public string Rol { get; set; }
+        public Perfil_234TL Perfil { get; set; }
         public bool Bloqueado { get; set; }
         public bool Activo { get; set; }
         public string Login { get; set; }
@@ -24,13 +26,13 @@
             Password = password;
         }
 
-        public Usuario_234TL(string dni, string nombre, string apellido, string email, string rol, bool bloqueado, bool activo, string login, string password, int intentosFallidos)
+        public Usuario_234TL(string dni, string nombre, string apellido, string email, Perfil_234TL perfil, bool bloqueado, bool activo, string login, string password, int intentosFallidos)
         {
             DNI = dni;
             Nombre = nombre;
             Apellido = apellido;
             Email = email;
-            Rol = rol;
+            Perfil = perfil;
             Bloqueado = bloqueado;
             Activo = activo;
             Login = login;

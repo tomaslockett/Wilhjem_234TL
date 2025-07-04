@@ -1,48 +1,67 @@
 ﻿using Microsoft.Data.SqlClient;
 using Servicios_234TL;
+using Servicios_234TL.Composite_234TL;
 
 namespace DAL_234TL
 {
     public class UsuarioDAL_234TL : AbstractDAL_234TL<Usuario_234TL, string>
     {
         private readonly string connectionString = "Data Source=.;Initial Catalog = Wilhjem_234TL; Integrated Security = True; Trust Server Certificate=True";
+        private readonly PerfilDAL_234TL _perfilDAL = new PerfilDAL_234TL();
+
+        private Usuario_234TL UsuarioFromReader(SqlDataReader reader, Dictionary<int, Perfil_234TL> perfilesCache = null)
+        {
+            var usuario = new Usuario_234TL
+            {
+                DNI = reader["DNI"].ToString(),
+                Nombre = reader["Nombre"].ToString(),
+                Apellido = reader["Apellido"].ToString(),
+                Email = reader["Email"].ToString(),
+                Bloqueado= (bool)reader["Bloqueo"],
+                Activo = (bool)reader["Activo"],
+                Login = reader["Login"].ToString(),
+                Password = reader["Password"].ToString(), 
+                IntentosFallidos = (int)reader["IntentosFallidos"],
+                UltimoIntentoFallido = reader["UltimoIntentoFallido"] is DBNull ? null : (DateTime?)reader["UltimoIntentoFallido"]
+            };
+
+            if (reader["IdPerfil"] != DBNull.Value)
+            {
+                int idPerfil = (int)reader["IdPerfil"];
+                if (perfilesCache != null && perfilesCache.TryGetValue(idPerfil, out var perfilCacheado))
+                {
+                    usuario.Perfil = perfilCacheado;
+                }
+                else
+                {
+                    usuario.Perfil = _perfilDAL.GetbyPrimaryKey(idPerfil);
+                }
+            }
+
+            return usuario;
+        }
+
 
         public override Usuario_234TL GetbyPrimaryKey(string dni)
         {
             try
             {
-                using (SqlConnection BaseDatos = new(connectionString))
+                using (var conexion = new SqlConnection(connectionString))
                 {
-                    BaseDatos.Open();
-                    string query = "SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos,UltimoIntentoFallido FROM Usuarios_234TL WHERE DNI = @DNI";
-
-                    using (SqlCommand comando = new(query, BaseDatos))
+                    conexion.Open();
+                    string query = "SELECT DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido FROM Usuarios_234TL WHERE DNI = @DNI";
+                    using (var comando = new SqlCommand(query, conexion))
                     {
                         comando.Parameters.AddWithValue("@DNI", dni);
-
-                        using (SqlDataReader reader = comando.ExecuteReader())
+                        using (var reader = comando.ExecuteReader())
                         {
                             if (reader.Read())
                             {
-                                return new Usuario_234TL
-                                {
-                                    DNI = reader.GetString(0),
-                                    Nombre = reader.GetString(1),
-                                    Apellido = reader.GetString(2),
-                                    Email = reader.GetString(3),
-                                    Rol = reader.GetString(4),
-                                    Bloqueado = reader.GetBoolean(5),
-                                    Activo = reader.GetBoolean(6),
-                                    Login = reader.GetString(7),
-                                    Password = reader.GetString(8),
-                                    IntentosFallidos = reader.GetInt32(9),
-                                    UltimoIntentoFallido = reader.IsDBNull(10) ? (DateTime?)null : reader.GetDateTime(10)
-                                };
+                                return UsuarioFromReader(reader);
                             }
                         }
                     }
                 }
-
                 return null;
             }
             catch (SqlException ex)
@@ -59,40 +78,24 @@ namespace DAL_234TL
         {
             try
             {
-                List<Usuario_234TL> ListaUsuarios = new();
+                var listaUsuarios = new List<Usuario_234TL>();
 
-                using (SqlConnection BaseDatos = new(connectionString))
+                var perfilesCache = _perfilDAL.GetAll().ToDictionary(p => p.IdPerfil);
+
+                using (var conexion = new SqlConnection(connectionString))
                 {
-                    BaseDatos.Open();
-                    string query = "SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos,UltimoIntentoFallido FROM Usuarios_234TL";
-
-                    using (SqlCommand Comando = new(query, BaseDatos))
+                    conexion.Open();
+                    string query = "SELECT DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido FROM Usuarios_234TL";
+                    using (var comando = new SqlCommand(query, conexion))
+                    using (var reader = comando.ExecuteReader())
                     {
-                        using (SqlDataReader reader = Comando.ExecuteReader())
+                        while (reader.Read())
                         {
-                            while (reader.Read())
-                            {
-                                Usuario_234TL usuario = new Usuario_234TL
-                                {
-                                    DNI = reader.GetString(0),
-                                    Nombre = reader.GetString(1),
-                                    Apellido = reader.GetString(2),
-                                    Email = reader.GetString(3),
-                                    Rol = reader.GetString(4),
-                                    Bloqueado = reader.GetBoolean(5),
-                                    Activo = reader.GetBoolean(6),
-                                    Login = reader.GetString(7),
-                                    Password = reader.GetString(8),
-                                    IntentosFallidos = reader.GetInt32(9),
-                                    UltimoIntentoFallido = reader.IsDBNull(10) ? (DateTime?)null : reader.GetDateTime(10)
-                                };
-                                ListaUsuarios.Add(usuario);
-                            }
+                            listaUsuarios.Add(UsuarioFromReader(reader, perfilesCache));
                         }
                     }
                 }
-
-                return ListaUsuarios;
+                return listaUsuarios;
             }
             catch (SqlException ex)
             {
@@ -104,35 +107,32 @@ namespace DAL_234TL
             }
         }
 
-        public override void Guardar(Usuario_234TL Entidad)
+        public override void Guardar(Usuario_234TL entidad)
         {
             try
             {
-                if (Entidad == null)
-                    throw new ArgumentNullException(nameof(Entidad));
-
-                using (SqlConnection BaseDatos = new SqlConnection(connectionString))
+                using (var conexion = new SqlConnection(connectionString))
                 {
-                    string query = @"INSERT INTO Usuarios_234TL
-                        (DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo, Login, Password, IntentosFallidos,UltimoIntentoFallido)
-                        VALUES
-                        (@DNI, @Nombre, @Apellido, @Email, @Rol, @Bloqueo, @Activo, @Login, @Password, @IntentosFallidos,@UltimoIntentoFallido)";
+                    conexion.Open();
+                    string query = @"INSERT INTO Usuarios_234TL 
+                                 (DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido) 
+                                 VALUES 
+                                 (@DNI, @Nombre, @Apellido, @Email, @IdPerfil, @Bloqueo, @Activo, @Login, @Password, @IntentosFallidos, @UltimoIntentoFallido)";
 
-                    using (SqlCommand command = new SqlCommand(query, BaseDatos))
+                    using (var command = new SqlCommand(query, conexion))
                     {
-                        command.Parameters.AddWithValue("@DNI", Entidad.DNI);
-                        command.Parameters.AddWithValue("@Nombre", Entidad.Nombre);
-                        command.Parameters.AddWithValue("@Apellido", Entidad.Apellido);
-                        command.Parameters.AddWithValue("@Email", Entidad.Email);
-                        command.Parameters.AddWithValue("@Rol", Entidad.Rol);
-                        command.Parameters.AddWithValue("@Bloqueo", Entidad.Bloqueado);
-                        command.Parameters.AddWithValue("@Activo", Entidad.Activo);
-                        command.Parameters.AddWithValue("@Login", Entidad.Login);
-                        command.Parameters.AddWithValue("@Password", Entidad.Password);
-                        command.Parameters.AddWithValue("@IntentosFallidos", Entidad.IntentosFallidos);
-                        command.Parameters.AddWithValue("@UltimoIntentoFallido", Entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@DNI", entidad.DNI);
+                        command.Parameters.AddWithValue("@Nombre", entidad.Nombre);
+                        command.Parameters.AddWithValue("@Apellido", entidad.Apellido);
+                        command.Parameters.AddWithValue("@Email", entidad.Email);
+                        command.Parameters.AddWithValue("@IdPerfil", entidad.Perfil?.IdPerfil ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Bloqueo", entidad.Bloqueado);
+                        command.Parameters.AddWithValue("@Activo", entidad.Activo);
+                        command.Parameters.AddWithValue("@Login", entidad.Login);
+                        command.Parameters.AddWithValue("@Password", entidad.Password);
+                        command.Parameters.AddWithValue("@IntentosFallidos", entidad.IntentosFallidos);
+                        command.Parameters.AddWithValue("@UltimoIntentoFallido", entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
 
-                        BaseDatos.Open();
                         command.ExecuteNonQuery();
                     }
                 }
@@ -147,41 +147,33 @@ namespace DAL_234TL
             }
         }
 
-        public override void Update(Usuario_234TL Entidad)
+        public override void Update(Usuario_234TL entidad)
         {
             try
             {
-                if (Entidad == null)
-                    throw new ArgumentNullException(nameof(Entidad));
-                using (SqlConnection BaseDatos = new(connectionString))
+                using (var conexion = new SqlConnection(connectionString))
                 {
-                    BaseDatos.Open();
-                    string query = @"UPDATE Usuarios_234TL
-                         SET Nombre = @Nombre,
-                             Apellido = @Apellido,
-                             Email = @Email,
-                             Rol = @Rol,
-                             Bloqueo = @Bloqueo,
-                             Activo = @Activo,
-                             Login = @Login,
-                             Password = @Password,
-                             IntentosFallidos = @IntentosFallidos,
-                             UltimoIntentoFallido = @UltimoIntentoFallido
-                         WHERE DNI = @DNI";
+                    conexion.Open();
+                    string query = @"UPDATE Usuarios_234TL SET 
+                                 Nombre = @Nombre, Apellido = @Apellido, Email = @Email, IdPerfil = @IdPerfil, 
+                                 Bloqueo = @Bloqueo, Activo = @Activo, Login = @Login, Password = @Password, 
+                                 IntentosFallidos = @IntentosFallidos, UltimoIntentoFallido = @UltimoIntentoFallido
+                                 WHERE DNI = @DNI";
 
-                    using (SqlCommand command = new(query, BaseDatos))
+                    using (var command = new SqlCommand(query, conexion))
                     {
-                        command.Parameters.AddWithValue("@DNI", Entidad.DNI);
-                        command.Parameters.AddWithValue("@Nombre", Entidad.Nombre);
-                        command.Parameters.AddWithValue("@Apellido", Entidad.Apellido);
-                        command.Parameters.AddWithValue("@Email", Entidad.Email);
-                        command.Parameters.AddWithValue("@Rol", Entidad.Rol);
-                        command.Parameters.AddWithValue("@Bloqueo", Entidad.Bloqueado);
-                        command.Parameters.AddWithValue("@Activo", Entidad.Activo);
-                        command.Parameters.AddWithValue("@Password", Entidad.Password);
-                        command.Parameters.AddWithValue("@IntentosFallidos", Entidad.IntentosFallidos);
-                        command.Parameters.AddWithValue("@Login", Entidad.Login);
-                        command.Parameters.AddWithValue("@UltimoIntentoFallido", Entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@DNI", entidad.DNI);
+                        command.Parameters.AddWithValue("@Nombre", entidad.Nombre);
+                        command.Parameters.AddWithValue("@Apellido", entidad.Apellido);
+                        command.Parameters.AddWithValue("@Email", entidad.Email);
+                        command.Parameters.AddWithValue("@IdPerfil", entidad.Perfil?.IdPerfil ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Bloqueo", entidad.Bloqueado);
+                        command.Parameters.AddWithValue("@Activo", entidad.Activo);
+                        command.Parameters.AddWithValue("@Login", entidad.Login);
+                        command.Parameters.AddWithValue("@Password", entidad.Password);
+                        command.Parameters.AddWithValue("@IntentosFallidos", entidad.IntentosFallidos);
+                        command.Parameters.AddWithValue("@UltimoIntentoFallido", entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
+
                         command.ExecuteNonQuery();
                     }
                 }
@@ -196,7 +188,6 @@ namespace DAL_234TL
             }
         }
 
-        //CAMBIAR
         public override void Eliminar(Usuario_234TL Entidad)
         {
             try
@@ -223,7 +214,6 @@ namespace DAL_234TL
             }
         }
 
-        //CAMBIAR
         public override void EliminarKey(string key)
         {
             try
@@ -255,46 +245,7 @@ namespace DAL_234TL
         {
             try
             {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                using (SqlConnection BaseDatos = new SqlConnection(connectionString))
-                {
-                    string query = @"SELECT DNI, Nombre, Apellido, Email, Rol, Bloqueo, Activo,
-                        Login, Password, IntentosFallidos
-                        FROM Usuarios_234TL
-                        WHERE Login = @Login AND Password = @Password";
-
-                    using (SqlCommand command = new SqlCommand(query, BaseDatos))
-                    {
-                        command.Parameters.AddWithValue("@Login", entity.Login);
-                        command.Parameters.AddWithValue("@Password", entity.Password);
-
-                        BaseDatos.Open();
-
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                return new Usuario_234TL
-                                {
-                                    DNI = reader.GetString(0),
-                                    Nombre = reader.GetString(1),
-                                    Apellido = reader.GetString(2),
-                                    Email = reader.GetString(3),
-                                    Rol = reader.GetString(4),
-                                    Bloqueado = reader.GetBoolean(5),
-                                    Activo = reader.GetBoolean(6),
-                                    Login = reader.GetString(7),
-                                    Password = reader.GetString(8),
-                                    IntentosFallidos = reader.GetInt32(9),
-                                    UltimoIntentoFallido = reader.IsDBNull(10) ? (DateTime?)null : reader.GetDateTime(10)
-                                };
-                            }
-                        }
-                    }
-                }
-                return null;
+                return GetbyPrimaryKey(entity.DNI);
             }
             catch (SqlException ex)
             {

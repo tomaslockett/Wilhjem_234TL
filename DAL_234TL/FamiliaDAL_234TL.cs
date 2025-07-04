@@ -175,6 +175,19 @@ namespace DAL_234TL
                 throw new Exception("Error al insertar la familia en la base de datos.", ex);
             }
         }
+        public bool NombreExiste(string nombre)
+        {
+            using (var conexion = new SqlConnection(connectionString))
+            {
+                conexion.Open();
+                string query = "SELECT COUNT(1) FROM Familia_234TL WHERE Nombre = @Nombre";
+                using (var cmd = new SqlCommand(query, conexion))
+                {
+                    cmd.Parameters.AddWithValue("@Nombre", nombre);
+                    return (int)cmd.ExecuteScalar() > 0;
+                }
+            }
+        }
 
         public override void Update(Familia_234TL entity)
         {
@@ -265,6 +278,30 @@ namespace DAL_234TL
             using SqlCommand cmdPermisos = new(deletePermisos, conexion);
             cmdPermisos.Parameters.AddWithValue("@IdFamilia", idFamilia);
             cmdPermisos.ExecuteNonQuery();
+        }
+
+        public bool PermisoEstaEnUso(int idPermiso)
+        {
+            try
+            {
+                using (SqlConnection conexion = new SqlConnection(connectionString))
+                {
+                    conexion.Open();
+
+                    string query = "SELECT COUNT(1) FROM FamiliaPermiso_234TL WHERE IdPermiso = @IdPermiso";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conexion))
+                    {
+                        cmd.Parameters.AddWithValue("@IdPermiso", idPermiso);
+                        int count = (int)cmd.ExecuteScalar();
+                        return count > 0;
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("Error al verificar el uso del permiso en familias.", ex);
+            }
         }
 
     }

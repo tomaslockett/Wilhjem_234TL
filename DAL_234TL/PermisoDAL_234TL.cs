@@ -174,6 +174,19 @@ namespace DAL_234TL
                 throw new Exception("Error inesperado.", ex);
             }
         }
+        public bool NombreExiste(string nombre)
+        {
+            using (var conexion = new SqlConnection(connectionString))
+            {
+                conexion.Open();
+                string query = "SELECT COUNT(1) FROM Permiso_234TL WHERE Nombre = @Nombre";
+                using (var cmd = new SqlCommand(query, conexion))
+                {
+                    cmd.Parameters.AddWithValue("@Nombre", nombre);
+                    return (int)cmd.ExecuteScalar() > 0;
+                }
+            }
+        }
 
         public override void Guardar(Permiso_234TL entity)
         {

@@ -133,31 +133,31 @@ namespace GUI_234TL
         {
             try
             {
-                if (FamiliasTreeView.SelectedNode?.Parent != null)
+                var familiaAEliminar = FamiliasTreeView.SelectedNode?.Tag as Familia_234TL;
+
+                if (familiaAEliminar == null || FamiliasTreeView.SelectedNode.Parent != null)
                 {
-                    Utilitarios_234TL.MensajeError("SoloSePuedeEliminarFamiliasRaiz");
+                    Utilitarios_234TL.MensajeError("Solo se pueden eliminar familias raíz desde esta opción.");
                     return;
                 }
 
-                var familia = FamiliasTreeView.SelectedNode.Tag as Familia_234TL;
-                if (familia == null)
-                {
-                    Utilitarios_234TL.MensajeError("SeleccionInvalida");
-                    return;
-                }
-                if (familia.ObtenerHijos().Count > 0)
-                {
-                    Utilitarios_234TL.MensajeError("FamiliaNoVaciaNoEliminable");
-                    return;
-                }
+                //if (Utilitarios_234TL.MensajeConfirmacion("¿Está seguro de que desea eliminar permanentemente esta familia?") == DialogResult.No)
+                //{
+                //    return;
+                //}
 
-                familiaBLL.Eliminar(familia);
-                CargarFamilias();
-                CargarPerfiles();
+                familiaBLL.EliminarFamilia(familiaAEliminar);
+
+                FamiliasTreeView.Nodes.Remove(FamiliasTreeView.SelectedNode);
+                Utilitarios_234TL.MensajeExito("Familia eliminada.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("ErrorAlEliminarFamilia", ex);
+                Utilitarios_234TL.MensajeError("Ocurrió un error inesperado al eliminar la familia.", ex);
             }
         }
 
@@ -166,72 +166,57 @@ namespace GUI_234TL
             try
             {
                 string nombre = NombreFamiliaTextbox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(nombre))
-                {
-                    Utilitarios_234TL.MensajeError("NombreFamiliaRequerido");
-                    return;
-                }
 
-                if (familiaBLL.GetAll().Any(f => f.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase)))
-                {
-                    Utilitarios_234TL.MensajeError("MismoNombreError");
-                    return;
-                }
-                var nueva = new Familia_234TL(nombre);
-                familiaBLL.Guardar(nueva);
-                CargarFamilias();
-                CargarPerfiles();
+                Familia_234TL nuevaFamilia = familiaBLL.CrearNuevaFamilia(nombre);
+
+
+                TreeNode nuevoNodo = CrearNodo(nuevaFamilia);
+                FamiliasTreeView.Nodes.Add(nuevoNodo);
+
+                NombreFamiliaTextbox.Clear();
+                Utilitarios_234TL.MensajeExito("Familia creada correctamente.");
+            }
+            catch (ArgumentException ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError($"ErrorAlCrearFamilia: {ex.Message}");
+                Utilitarios_234TL.MensajeError("Error inesperado al crear la familia.", ex);
             }
         }
         private void AgregarAFamiliaFamiliaButton_Click(object sender, EventArgs e)
         {
             try
             {
-                if (FamiliasTreeView.SelectedNode?.Tag is not Familia_234TL familiaPadre)
-                {
-                    Utilitarios_234TL.MensajeError("SeleccionarFamiliaPadre");
-                    return;
-                }
+                var familiaPadre = FamiliasTreeView.SelectedNode?.Tag as Familia_234TL;
+                var familiaHija = this.temporal;
 
-                if (temporal == null)
+                if (familiaPadre == null || familiaHija == null)
                 {
-                    Utilitarios_234TL.MensajeError("SeleccionarFamiliaHija");
+                    Utilitarios_234TL.MensajeError("Debe seleccionar una familia padre y una familia hija.");
                     return;
                 }
+                familiaBLL.AgregarHijo(familiaPadre, familiaHija);
 
-                if (familiaPadre.IdFamilia == temporal.IdFamilia)
-                {
-                    Utilitarios_234TL.MensajeError("NoSePuedeAgregarAFamiliaASiMisma");
-                    return;
-                }
-
-                if (EsCircular(familiaPadre, temporal))
-                {
-                    Utilitarios_234TL.MensajeError("JerarquiaCircularError");
-                    return;
-                }
-                bool familiaYaExiste = familiaPadre.ObtenerHijos().Any(h => h is Familia_234TL f && f.IdFamilia == temporal.IdFamilia);
-                if (familiaYaExiste)
-                {
-                    Utilitarios_234TL.MensajeAdvertencia("FamiliaYaContieneEstaFamilia");
-                    return;
-                }
-
-                familiaPadre.AgregarHijo(temporal);
-                familiaBLL.Update(familiaPadre);
+                Utilitarios_234TL.MensajeExito("Familia agregada correctamente.");
                 CargarFamilias();
                 CargarPerfiles();
 
                 temporal = null;
                 FamiliaSeleccionadaLabel.Text = "Familia seleccionada: (ninguna)";
             }
+            catch (InvalidOperationException ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
+            }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("ErrorAlAgregarFamiliaAFamilia", ex);
+                Utilitarios_234TL.MensajeError("Ocurrió un error inesperado al agregar la familia.", ex);
             }
         }
         private void SeleccionarFamiliaButton_Click(object sender, EventArgs e)
@@ -270,46 +255,27 @@ namespace GUI_234TL
         {
             try
             {
-                if (PerfilesTreeView.SelectedNode?.Tag is not Perfil_234TL perfil)
+                var perfilSeleccionado = PerfilesTreeView.SelectedNode?.Tag as Perfil_234TL;
+                var permisoSeleccionado = PermisosListbox.SelectedItem as Permiso_234TL;
+
+                if (perfilSeleccionado == null || permisoSeleccionado == null)
                 {
-                    Utilitarios_234TL.MensajeError("SeleccionarPerfil");
+                    Utilitarios_234TL.MensajeError("Debe seleccionar un perfil y un permiso.");
                     return;
                 }
 
-                if (PermisosListbox.SelectedItems.Count == 0)
-                {
-                    Utilitarios_234TL.MensajeError("SeleccionarPermiso");
-                    return;
-                }
-                bool algunAgregado = false;
-                foreach (var selectedItem in PermisosListbox.SelectedItems)
-                {
-                    if (selectedItem is Permiso_234TL permiso)
-                    {
-                        bool permisoDirectoExistente = perfil.ObtenerComponentes().Any(c => c is Permiso_234TL p && p.IdPermiso == permiso.IdPermiso);
+                perfilBLL.AgregarComponenteAPerfil(perfilSeleccionado, permisoSeleccionado);
 
-                        bool permisoEnFamilias = perfil.ObtenerComponentes().OfType<Familia_234TL>().Any(familia => PermisoExisteEnJerarquia(familia, permiso.IdPermiso));
-
-                        if (permisoDirectoExistente || permisoEnFamilias)
-                        {
-                            Utilitarios_234TL.MensajeAdvertencia($"El permiso '{permiso.Nombre}' ya existe en el perfil");
-                            continue;
-                        }
-
-                        perfil.AgregarComponente(permiso);
-                        algunAgregado = true;
-                    }
-                }
-
-                if (algunAgregado)
-                {
-                    perfilBLL.Update(perfil);
-                    CargarPerfiles();
-                }
+                CargarPerfiles();
+                Utilitarios_234TL.MensajeExito("Permiso agregado al perfil.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("ErrorAlAgregarPermisoAPerfil", ex);
+                Utilitarios_234TL.MensajeError("Error inesperado al agregar el permiso.", ex);
             }
         }
 
@@ -319,10 +285,12 @@ namespace GUI_234TL
             {
                 if (PerfilesTreeView.SelectedNode?.Tag is not Perfil_234TL perfil)
                 {
+                    Utilitarios_234TL.MensajeError("DebeSeleccionarUnPerfil");
                     return;
                 }
                 if (FamiliasTreeView.SelectedNode?.Tag is not Familia_234TL familia)
                 {
+                    Utilitarios_234TL.MensajeError("DebeSeleccionarUnaFamilia");
                     return;
                 }
                 bool familiaDirectaExistente = perfil.ObtenerComponentes().Any(c => c is Familia_234TL f && f.IdFamilia == familia.IdFamilia);
@@ -336,7 +304,9 @@ namespace GUI_234TL
                 }
                 perfil.AgregarComponente(familia);
                 perfilBLL.Update(perfil);
+                CargarFamilias();
                 CargarPerfiles();
+                Utilitarios_234TL.MensajeExito("Familia agregada al perfil correctamente.");
             }
             catch (Exception ex)
             {
@@ -380,7 +350,6 @@ namespace GUI_234TL
                     return;
                 }
 
-
                 if (perfil.ObtenerComponentes().Count > 0)
                 {
                     Utilitarios_234TL.MensajeError("PerfilNoVacioNoEliminable");
@@ -389,6 +358,10 @@ namespace GUI_234TL
 
                 perfilBLL.Eliminar(perfil);
                 CargarPerfiles();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             catch (Exception ex)
             {
@@ -456,24 +429,7 @@ namespace GUI_234TL
                 return new TreeNode("Error");
             }
         }
-        private void ActualizarNodoFamilia(TreeNode nodo, Familia_234TL familia)
-        {
-            nodo.Nodes.Clear();
-            foreach (var hijo in familia.ObtenerHijos())
-            {
-                nodo.Nodes.Add(CrearNodo(hijo));
-            }
-            nodo.Expand();
-        }
-        private void ActualizarNodoPerfil(TreeNode nodo, Perfil_234TL perfil)
-        {
-            nodo.Nodes.Clear();
-            foreach (var componente in perfil.ObtenerComponentes())
-            {
-                nodo.Nodes.Add(CrearNodo(componente));
-            }
-            nodo.Expand();
-        }
+
         #endregion
 
         #region Cargar
@@ -535,15 +491,6 @@ namespace GUI_234TL
         }
 
         #endregion
-        private bool EsCircular(Familia_234TL padre, Familia_234TL posibleHijo)
-        {
-            if (padre.IdFamilia == posibleHijo.IdFamilia)
-            {
-                return true;
-            }
-
-            return VerificarJerarquia(posibleHijo, padre.IdFamilia);
-        }
 
         private bool VerificarJerarquia(Familia_234TL familia, int idPadre)
         {

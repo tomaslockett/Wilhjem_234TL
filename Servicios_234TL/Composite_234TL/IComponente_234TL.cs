@@ -8,6 +8,8 @@ namespace Servicios_234TL.Composite_234TL
 {
     public interface IComponente_234TL
     {
+        public int Id { get; }
+        public string Nombre { get; set; }
         void AgregarHijo(IComponente_234TL hijo);
         void EliminarHijo(IComponente_234TL hijo);
 

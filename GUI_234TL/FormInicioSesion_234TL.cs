@@ -1,4 +1,5 @@
 ﻿using BLL_234TL;
+using Microsoft.VisualBasic.Logging;
 using Servicios_234TL;
 using Servicios_234TL.Observer_234TL;
 using Servicios_234TL.Singleton_234TL;
@@ -28,68 +29,17 @@ namespace GUI_234TL
 
         private void IngresarButton_Click(object sender, EventArgs e)
         {
-            string Login = textBox1.Text;
-            string Password = Encryptador_234TL.SHA256Encrpytar_234TL(textBox2.Text);
+            string login = textBox1.Text.Trim();
+            string password = textBox2.Text;
 
             IngresarButton.Enabled = false;
             try
             {
-                if (string.IsNullOrEmpty(Login))
-                    throw new Exception("Mensaje_LoginRequerido");
+                usuarioBLL.Login(login, password);
 
-                if (string.IsNullOrEmpty(Password))
-                    throw new Exception("Mensaje_PasswordRequerido");
-
-                var resultado = usuarioBLL.Login(Login, Password);
-
-                switch (resultado)
-                {
-                    case Resultados_234TL.UsuarioLogueado:
-                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioYaLogueado");
-                        textBox1.Clear();
-                        textBox2.Clear();
-                        this.Close();
-                        break;
-
-                    case Resultados_234TL.UsuarioValido:
-                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioValido");
-                        textBox1.Clear();
-                        textBox2.Clear();
-
-                        if (this.Owner is FormPrincipal_234TL formPrincipal)
-                        {
-                            formPrincipal.ActualizarUsuarioLogueado(usuarioBLL.GetUsuarioLogueado());
-                            IdiomasManager_234TL.Instancia.NotificarActuales();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Mensaje_ErrorActualizarUsuario");
-                        }
-                        this.Close();
-                        break;
-
-                    case Resultados_234TL.UsuarioBloqueado:
-                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioBloqueado");
-                        textBox1.Clear();
-                        textBox2.Clear();
-                        this.Close();
-                        break;
-
-                    case Resultados_234TL.ContrasenaInvalida:
-                        Utilitarios_234TL.MensajeAdvertencia("Mensaje_ContrasenaInvalida");
-                        break;
-
-                    case Resultados_234TL.UsuarioNoExiste:
-                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioNoExiste");
-                        break;
-
-                    case Resultados_234TL.UsuarioInactivo:
-                        Utilitarios_234TL.MensajeError("Mensaje_UsuarioInactivo");
-                        textBox1.Clear();
-                        textBox2.Clear();
-                        this.Close();
-                        break;
-                }
+                Utilitarios_234TL.MensajeExito("Mensaje_UsuarioValido"); 
+                this.DialogResult = DialogResult.OK; 
+                this.Close();
             }
             catch (Exepcion_234TL ex)
             {

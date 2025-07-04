@@ -25,9 +25,7 @@ namespace Servicios_234TL.Composite_234TL
             {
                 permisos.AddRange(componente.ObtenerPermisos());
             }
-            return permisos.DistinctBy(p => p.Nombre).ToList(); 
-            //EHH el Distinctby talvez me da problemas en el futuro, ya no me acuerdo porque pero tene encuenta eso lockett del futuro. te quiero :P
-            //AA problemas a la hora de guardar y cargar creo
+            return permisos.DistinctBy(p => p.IdPermiso).ToList(); 
         }
         public List<IComponente_234TL> ObtenerComponentes()
         {
@@ -42,6 +40,11 @@ namespace Servicios_234TL.Composite_234TL
         public void AgregarComponente(IComponente_234TL Componente)
         {
             Componentes.Add(Componente);
+        }
+
+        public override string ToString()
+        {
+            return Nombre;
         }
 
     }

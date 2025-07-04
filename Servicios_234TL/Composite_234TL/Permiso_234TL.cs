@@ -9,6 +9,8 @@ namespace Servicios_234TL.Composite_234TL
     public class Permiso_234TL : IComponente_234TL
     {
         public int IdPermiso { get; set; }
+
+        public int Id => IdPermiso; 
         public string Nombre { get; set; }
 
         public Permiso_234TL(string nombre)

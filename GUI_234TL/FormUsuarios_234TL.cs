@@ -1,20 +1,17 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
+using Servicios_234TL.Composite_234TL;
+using Servicios_234TL.Exception_234TL;
+using Servicios_234TL.Observer_234TL;
 using System.Text.RegularExpressions;
 using Wilhjem;
-using Servicios_234TL.Observer_234TL;
-using System.Windows.Forms;
-using System.Runtime.CompilerServices;
 
 namespace GUI_234TL
 {
     public partial class FormUsuarios_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
-
         private const string RolAdmin = "SuperAdmin";
-
         private UsuarioBLL_234TL bll = new BLL_234TL.UsuarioBLL_234TL();
-
         private ModoFormulario ModoActual = ModoFormulario.ModoConsulta;
 
         public FormUsuarios_234TL()
@@ -29,6 +26,7 @@ namespace GUI_234TL
             radioButtonActivo.Checked = true;
             CambiarModo(ModoFormulario.ModoConsulta);
             CargarUsuarios();
+            CargarPerfilesEnComboBox();
             dataGridViewUsuarios.DataBindingComplete += DataGridCompletado;
             Utilitarios_234TL.SuscribirAIdiomas(this);
             IdiomasManager_234TL.Instancia.NotificarActuales();
@@ -115,7 +113,7 @@ namespace GUI_234TL
             }
             var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
 
-            if (usuario.Rol == RolAdmin)
+            if (usuario.Perfil?.Nombre == RolAdmin)
             {
                 Utilitarios_234TL.MensajeError("Mensaje_NoModificarSuperAdmin");
                 return;
@@ -258,250 +256,131 @@ namespace GUI_234TL
 
         private void AplicarButton_Click(object sender, EventArgs e)
         {
-            switch (ModoActual)
+            LimpiarColoresError();
+            try
             {
-                case ModoFormulario.ModoConsulta:
-                    CargarUsuarios();
-                    break;
-
-                case ModoFormulario.ModoCrear:
-                    var nuevousuario = new Usuario_234TL();
-
-                    if (!ERRORUsuario(nuevousuario, out string errormsg))
-                    {
-                        Utilitarios_234TL.MensajeError(errormsg);
-                        return;
-                    }
-                    //Bloqueado
-                    nuevousuario.Bloqueado = false;
-                    //Activo
-                    nuevousuario.Activo = true;
-                    //Intentos fallidos
-                    nuevousuario.IntentosFallidos = 0;
-                    bll.GenerarCredenciales(nuevousuario);
-                    bll.Guardar(nuevousuario);
-                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioCreado");
-                    CargarUsuarios();
-                    LimpiarCampos();
-                    break;
-
-                case ModoFormulario.ModoModificar:
-
-                    if (dataGridViewUsuarios.CurrentRow == null)
-                    {
-                        Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
-                        return;
-                    }
-
-                    var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
-
-                    if (usuario.Rol == RolAdmin)
-                    {
-                        Utilitarios_234TL.MensajeError("Mensaje_NoModificarSuperAdmin");
-                        return;
-                    }
-
-                    if (!ERRORUsuario(usuario, out string errormsgmodificar))
-                    {
-                        Utilitarios_234TL.MensajeError(errormsgmodificar);
-                        return;
-                    }
-                    bll.GenerarLogin(usuario);
-                    bll.Update(usuario);
-                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioModificado");
-                    CargarUsuarios();
-                    if (dataGridViewUsuarios.CurrentRow != null)
-                        CargarDatosUsuario();
-                    break;
-
-                case ModoFormulario.ModoEliminar:
-
-                    if (dataGridViewUsuarios.CurrentRow == null)
-                    {
-                        Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
-                        return;
-                    }
-                    var usuarioeliminar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
-                    if (usuarioeliminar.Rol == RolAdmin)
-                    {
-                        Utilitarios_234TL.MensajeError("Mensaje_NoEliminarAdmin");
-                        return;
-                    }
-                    bll.Eliminar(usuarioeliminar);
-                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioEliminado");
-                    CargarUsuarios();
-
-                    break;
-
-                case ModoFormulario.ModoDesbloquear:
-                    if (dataGridViewUsuarios.CurrentRow == null)
-                    {
-                        Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
-                        return;
-                    }
-                    var usuarioseleccionado = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
-                    if (!usuarioseleccionado.Bloqueado)
-                    {
-                        Utilitarios_234TL.MensajeInformacion("Mensaje_UsuarioNoBloqueado");
-                        return;
-                    }
-                    bll.DesbloquearUsuario(usuarioseleccionado);
-                    CargarUsuarios();
-                    ColorearFilasBloqueadas();
-                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesbloqueado");
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        // Devuelve Dos cosas el bool y el out que es un string para decir que mierda esta mal
-        // lo demas es puro regex y cambiar colorcitos
-        private bool ERRORUsuario(Usuario_234TL usuario, out string errormsg)
-        {
-            errormsg = string.Empty;
-            bool Crear = ModoActual == ModoFormulario.ModoCrear;
-            bool Modificar = ModoActual == ModoFormulario.ModoModificar;
-
-            if (Modificar && DNItextBox.ReadOnly == false)
-            {
-                errormsg = "Error_ModificarDNI";
-                DNItextBox.BackColor = Color.LightPink;
-                return false;
-            }
-
-            //DNI
-            string dni = DNItextBox.Text.Trim();
-            if (string.IsNullOrEmpty(dni))
-            {
-                errormsg = "Error_DNI_Requerido";
-                DNItextBox.Focus();
-                DNItextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            if (Crear)
-            {
-                usuario.DNI = dni;
-                if (bll.ExisteDni(usuario.DNI))
+                switch (ModoActual)
                 {
-                    errormsg = "Error_DNI_Existente";
-                    DNItextBox.Focus();
-                    DNItextBox.BackColor = Color.LightPink;
-                    return false;
+                    case ModoFormulario.ModoConsulta:
+                        CargarUsuarios();
+                        break;
+
+                    case ModoFormulario.ModoCrear:
+                        var nuevoUsuario = new Usuario_234TL
+                        {
+                            DNI = DNItextBox.Text.Trim(),
+                            Nombre = NombretextBox.Text.Trim(),
+                            Apellido = ApellidotextBox.Text.Trim(),
+                            Email = EmailtextBox.Text.Trim(),
+                            Perfil = RolcomboBox.SelectedItem as Perfil_234TL
+                        };
+
+                        bll.CrearNuevoUsuario(nuevoUsuario);
+                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioCreado");
+                        break;
+
+                    case ModoFormulario.ModoModificar:
+
+                        if (dataGridViewUsuarios.CurrentRow == null)
+                        {
+                            Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                            return;
+                        }
+                        var usuarioModificar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
+
+                        usuarioModificar.Nombre = NombretextBox.Text.Trim();
+                        usuarioModificar.Apellido = ApellidotextBox.Text.Trim();
+                        usuarioModificar.Email = EmailtextBox.Text.Trim();
+                        usuarioModificar.Perfil = RolcomboBox.SelectedItem as Perfil_234TL;
+
+                        bll.ModificarUsuario(usuarioModificar);
+                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioModificado");
+                        break;
+
+                    case ModoFormulario.ModoEliminar:
+
+                        if (dataGridViewUsuarios.CurrentRow == null)
+                        {
+                            Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                            return;
+                        }
+                        var usuarioeliminar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
+                        if (usuarioeliminar.Perfil?.Nombre == RolAdmin)
+                        {
+                            Utilitarios_234TL.MensajeError("Mensaje_NoEliminarAdmin");
+                            return;
+                        }
+                        bll.Eliminar(usuarioeliminar);
+                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioEliminado");
+                        CargarUsuarios();
+
+                        break;
+
+                    case ModoFormulario.ModoDesbloquear:
+                        if (dataGridViewUsuarios.CurrentRow == null)
+                        {
+                            Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                            return;
+                        }
+                        var usuarioseleccionado = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
+                        if (!usuarioseleccionado.Bloqueado)
+                        {
+                            Utilitarios_234TL.MensajeInformacion("Mensaje_UsuarioNoBloqueado");
+                            return;
+                        }
+                        bll.DesbloquearUsuario(usuarioseleccionado);
+                        CargarUsuarios();
+                        ColorearFilasBloqueadas();
+                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesbloqueado");
+                        break;
+
+                    default:
+                        break;
+                }
+                CargarUsuarios();
+                LimpiarCampos();
+            }
+            catch(ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
+
+                switch (ex.Nombre)
+                {
+                    case "DNI":
+                        DNItextBox.BackColor = Color.LightPink;
+                        DNItextBox.Focus();
+                        break;
+                    case "Nombre":
+                        NombretextBox.BackColor = Color.LightPink;
+                        NombretextBox.Focus();
+                        break;
+                    case "Apellido":
+                        ApellidotextBox.BackColor = Color.LightPink;
+                        ApellidotextBox.Focus();
+                        break;
+                    case "Email":
+                        EmailtextBox.BackColor = Color.LightPink;
+                        EmailtextBox.Focus();
+                        break;
+                    case "Perfil":
+                        RolcomboBox.BackColor = Color.LightPink;
+                        RolcomboBox.Focus();
+                        break;
                 }
             }
-
-            usuario.DNI = dni;
-            if (Crear && bll.ExisteDni(usuario.DNI))
+            catch (ArgumentException ex)
             {
-                errormsg = "Error_DNI_Existente";
-                DNItextBox.Focus();
-                DNItextBox.BackColor = Color.LightPink;
-                return false;
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
-            else if (!Crear && bll.ExisteDni(usuario.DNI, usuario.Login))
+            catch (InvalidOperationException ex) 
             {
-                errormsg = "Error_DNI_PerteneceOtro";
-                DNItextBox.Focus();
-                DNItextBox.BackColor = Color.LightPink;
-                return false;
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
-
-            if (!Regex.IsMatch(dni, @"^\d{8}$"))
+            catch (Exception ex) 
             {
-                errormsg = "Error_DNI_Formato";
-                DNItextBox.Focus();
-                DNItextBox.BackColor = Color.LightPink;
-                return false;
+                Utilitarios_234TL.MensajeError($"Ocurrió un error inesperado: {ex.Message}");
             }
-
-            DNItextBox.BackColor = SystemColors.Window;
-
-            //Nombre
-            string nombre = NombretextBox.Text.Trim();
-            if (string.IsNullOrEmpty(nombre))
-            {
-                errormsg = "Error_Nombre_Requerido";
-                NombretextBox.Focus();
-                NombretextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            if (!Regex.IsMatch(nombre, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
-            {
-                errormsg = "Error_Nombre_Formato";
-                NombretextBox.Focus();
-                NombretextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            usuario.Nombre = nombre;
-            NombretextBox.BackColor = SystemColors.Window;
-
-            //Apellido
-            string apellido = ApellidotextBox.Text.Trim();
-            if (string.IsNullOrEmpty(apellido))
-            {
-                errormsg = "Error_Apellido_Requerido";
-                ApellidotextBox.Focus();
-                ApellidotextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            if (!Regex.IsMatch(apellido, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$"))
-            {
-                errormsg = "Error_Apellido_Formato";
-                ApellidotextBox.Focus();
-                ApellidotextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            usuario.Apellido = apellido;
-            ApellidotextBox.BackColor = SystemColors.Window;
-
-            //Email
-            string mail = EmailtextBox.Text.Trim();
-            if (string.IsNullOrEmpty(mail))
-            {
-                errormsg = "Error_Email_Requerido";
-                EmailtextBox.Focus();
-                EmailtextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            if (Crear && bll.ExisteEmail(mail))
-            {
-                errormsg = "Error_Email_Existente";
-                EmailtextBox.Focus();
-                EmailtextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            else if (!Crear && bll.ExisteEmail(mail, usuario.Login))
-            {
-                errormsg = "Error_Email_PerteneceOtro";
-                EmailtextBox.Focus();
-                EmailtextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            if (!Regex.IsMatch(mail, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
-            {
-                errormsg = "Error_Email_Formato";
-                EmailtextBox.Focus();
-                EmailtextBox.BackColor = Color.LightPink;
-                return false;
-            }
-            usuario.Email = mail;
-            EmailtextBox.BackColor = SystemColors.Window;
-
-            //Rol
-            if (string.IsNullOrEmpty(RolcomboBox.Text))
-            {
-                errormsg = "Error_Rol_Requerido";
-                RolcomboBox.Focus();
-                return false;
-            }
-            usuario.Rol = RolcomboBox.Text;
-
-            return true;
         }
-
-
 
         #region Funciones
 
@@ -548,6 +427,14 @@ namespace GUI_234TL
             EmailtextBox.ReadOnly = soloLeer;
             RolcomboBox.Enabled = !soloLeer;
         }
+        private void LimpiarColoresError()
+        {
+            DNItextBox.BackColor = SystemColors.Window;
+            NombretextBox.BackColor = SystemColors.Window;
+            ApellidotextBox.BackColor = SystemColors.Window;
+            EmailtextBox.BackColor = SystemColors.Window;
+            RolcomboBox.BackColor = SystemColors.Window;
+        }
 
         private void Blanco()
         {
@@ -567,7 +454,14 @@ namespace GUI_234TL
                 NombretextBox.Text = usuario.Nombre;
                 ApellidotextBox.Text = usuario.Apellido;
                 EmailtextBox.Text = usuario.Email;
-                RolcomboBox.Text = usuario.Rol;
+                if (usuario.Perfil != null)
+                {
+                    RolcomboBox.SelectedValue = usuario.Perfil.IdPerfil;
+                }
+                else
+                {
+                    RolcomboBox.SelectedIndex = -1;
+                }
             }
         }
 
@@ -600,12 +494,19 @@ namespace GUI_234TL
         {
             var usuarios = bll.GetAll();
             if (radioButtonActivo.Checked)
+            {
                 usuarios = usuarios.Where(u => u.Activo == true).ToList();
+            }
+
             dataGridViewUsuarios.DataSource = usuarios;
             if (AtributoscheckBox.Checked)
+            {
                 MostrarTodasColumnas();
+            }
             else
+            {
                 OcultarColumnas();
+            }
         }
 
         private void DataGridCompletado(object sender, DataGridViewBindingCompleteEventArgs e)
@@ -651,6 +552,23 @@ namespace GUI_234TL
 
             }
 
+        }
+
+
+        private void CargarPerfilesEnComboBox()
+        {
+            try
+            {
+                var perfiles = bll.ObtenerPerfilesDisponibles();
+                RolcomboBox.DataSource = perfiles;
+                RolcomboBox.DisplayMember = "Nombre";
+                RolcomboBox.ValueMember = "IdPerfil";
+                RolcomboBox.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError($"Error al cargar los perfiles: {ex.Message}");
+            }
         }
 
 

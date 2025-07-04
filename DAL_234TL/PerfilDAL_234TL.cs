@@ -329,6 +329,56 @@ namespace DAL_234TL
 
             return familias;
         }
+        public bool FamiliaEstaEnUso(int idFamilia)
+        {
+            using (var conexion = new SqlConnection(connectionString))
+            {
+                conexion.Open();
+                string query = "SELECT COUNT(1) FROM PerfilFamilia_234TL WHERE IdFamilia = @IdFamilia";
+                using (var cmd = new SqlCommand(query, conexion))
+                {
+                    cmd.Parameters.AddWithValue("@IdFamilia", idFamilia);
+                    int count = (int)cmd.ExecuteScalar();
+                    return count > 0;
+                }
+            }
+        }
+        public bool NombreExiste(string nombre)
+        {
+            using (var conexion = new SqlConnection(connectionString))
+            {
+                conexion.Open();
+                string query = "SELECT COUNT(1) FROM Perfil_234TL WHERE Nombre = @Nombre";
+                using (var cmd = new SqlCommand(query, conexion))
+                {
+                    cmd.Parameters.AddWithValue("@Nombre", nombre);
+                    int count = (int)cmd.ExecuteScalar();
+                    return count > 0;
+                }
+            }
+        }
+        public bool PermisoEstaEnUso(int idPermiso)
+        {
+            try
+            {
+                using (SqlConnection conexion = new SqlConnection(connectionString))
+                {
+                    conexion.Open();
+                    string query = "SELECT COUNT(1) FROM PerfilPermiso_234TL WHERE IdPermiso = @IdPermiso";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conexion))
+                    {
+                        cmd.Parameters.AddWithValue("@IdPermiso", idPermiso);
+                        int count = (int)cmd.ExecuteScalar();
+                        return count > 0;
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("Error al verificar el uso del permiso en perfiles.", ex);
+            }
+        }
 
         private void InsertarComponentes(Perfil_234TL entity, SqlConnection conexion, SqlTransaction transaccion)
         {
