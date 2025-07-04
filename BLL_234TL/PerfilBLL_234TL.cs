@@ -11,11 +11,9 @@ namespace BLL_234TL
     public class PerfilBLL_234TL : AbstractaBLL_234TL<Perfil_234TL, int>
     {
         private readonly PerfilDAL_234TL _perfilDAL;
-        private readonly UsuarioBLL_234TL _usuarioBLL;
         public PerfilBLL_234TL() : base(new PerfilDAL_234TL())
         {
             _perfilDAL = new PerfilDAL_234TL();
-            _usuarioBLL = new UsuarioBLL_234TL();
         }
 
         public void AgregarComponenteAPerfil(Perfil_234TL perfil, IComponente_234TL componente)
@@ -78,7 +76,8 @@ namespace BLL_234TL
         }
         public bool PerfilEstaEnUso(int idPerfil)
         {
-            return _usuarioBLL.GetAll().Any(u => u.Perfil?.IdPerfil == idPerfil);
+            var usuarioBLL = new UsuarioBLL_234TL();
+            return usuarioBLL.GetAll().Any(u => u.Perfil?.IdPerfil == idPerfil);
         }
 
         public override void Eliminar(Perfil_234TL entity)
