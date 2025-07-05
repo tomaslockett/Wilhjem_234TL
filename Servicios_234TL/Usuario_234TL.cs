@@ -17,6 +17,8 @@ namespace Servicios_234TL
 
         public DateTime? UltimoIntentoFallido { get; set; }
 
+        public string Idioma { get; set; } = "es"; 
+
         public Usuario_234TL()
         { }
 

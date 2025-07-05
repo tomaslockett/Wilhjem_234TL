@@ -1,13 +1,17 @@
-﻿using Servicios_234TL.Observer_234TL;
+﻿using BLL_234TL;
+using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
     public partial class FormCambiarIdioma_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
+        private readonly UsuarioBLL_234TL usuarioBLL;
         public FormCambiarIdioma_234TL()
         {
             InitializeComponent();
+            usuarioBLL = new UsuarioBLL_234TL();
             Utilitarios_234TL.SuscribirAIdiomas(this);
             IdiomasManager_234TL.Instancia.NotificarActuales();
         }
@@ -85,8 +89,26 @@ namespace GUI_234TL
 
         private void CambiarIdioma(string idioma)
         {
-            IdiomasManager_234TL.Instancia.CambiarIdioma(idioma);
-            this.Close();
+            try
+            {
+                var sesion = SingletonT_234TL<Sesion_234TL>.GetInstance();
+
+                if (sesion.IsLoggedIn_234TL())
+                {
+                    var usuarioActual = sesion.Usuario;
+                    usuarioBLL.CambiarIdiomaUsuario(usuarioActual, idioma);
+                }
+                else
+                {
+                    IdiomasManager_234TL.Instancia.CambiarIdioma(idioma);
+                }
+
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError($"Ocurrió un error al cambiar el idioma: {ex.Message}");
+            }
         }
 
         private void FormCambiarIdioma_234TL_FormClosed(object sender, FormClosedEventArgs e)

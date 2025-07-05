@@ -1,4 +1,5 @@
 ﻿using BLL_234TL;
+using GUI_234TL;
 using Servicios_234TL;
 using Servicios_234TL.Observer_234TL;
 using System;
@@ -106,6 +107,14 @@ namespace Wilhjem
             catch (Exception ex)
             {
                 MessageBox.Show($"Falló la traducción para la clave '{clave}': {ex.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        public static DialogResult MensajeConfirmacion(string claveMensaje, params object[] args)
+        {
+            using (var formMessaBox_234TL = new FormMessageBox_234TL(claveMensaje, args))
+            {
+                return formMessaBox_234TL.ShowDialog();
             }
         }
 

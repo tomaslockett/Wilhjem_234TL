@@ -6,9 +6,6 @@
 
         private static Object Lock = new();
 
-        // se puede poner new() en vez de new object(), porque se sobre entiende
-        //https://learn.microsoft.com/es-mx/dotnet/fundamentals/code-analysis/style-rules/ide0090
-
         public static Sesion_234TL GetInstance()
         {
             if (sesion_ == null)

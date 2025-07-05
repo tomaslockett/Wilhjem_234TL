@@ -22,7 +22,8 @@ namespace DAL_234TL
                 Login = reader["Login"].ToString(),
                 Password = reader["Password"].ToString(), 
                 IntentosFallidos = (int)reader["IntentosFallidos"],
-                UltimoIntentoFallido = reader["UltimoIntentoFallido"] is DBNull ? null : (DateTime?)reader["UltimoIntentoFallido"]
+                UltimoIntentoFallido = reader["UltimoIntentoFallido"] is DBNull ? null : (DateTime?)reader["UltimoIntentoFallido"],
+                Idioma = reader["Idioma"] is DBNull ? "es" : reader["Idioma"].ToString()
             };
 
             if (reader["IdPerfil"] != DBNull.Value)
@@ -85,7 +86,7 @@ namespace DAL_234TL
                 using (var conexion = new SqlConnection(connectionString))
                 {
                     conexion.Open();
-                    string query = "SELECT DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido FROM Usuarios_234TL";
+                    string query = "SELECT DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido, Idioma FROM Usuarios_234TL";
                     using (var comando = new SqlCommand(query, conexion))
                     using (var reader = comando.ExecuteReader())
                     {
@@ -115,9 +116,9 @@ namespace DAL_234TL
                 {
                     conexion.Open();
                     string query = @"INSERT INTO Usuarios_234TL 
-                                 (DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido) 
+                                 (DNI, Nombre, Apellido, Email, IdPerfil, Bloqueo, Activo, Login, Password, IntentosFallidos, UltimoIntentoFallido, Idioma) 
                                  VALUES 
-                                 (@DNI, @Nombre, @Apellido, @Email, @IdPerfil, @Bloqueo, @Activo, @Login, @Password, @IntentosFallidos, @UltimoIntentoFallido)";
+                                 (@DNI, @Nombre, @Apellido, @Email, @IdPerfil, @Bloqueo, @Activo, @Login, @Password, @IntentosFallidos, @UltimoIntentoFallido, @Idioma)";
 
                     using (var command = new SqlCommand(query, conexion))
                     {
@@ -132,6 +133,7 @@ namespace DAL_234TL
                         command.Parameters.AddWithValue("@Password", entidad.Password);
                         command.Parameters.AddWithValue("@IntentosFallidos", entidad.IntentosFallidos);
                         command.Parameters.AddWithValue("@UltimoIntentoFallido", entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Idioma", entidad.Idioma);
 
                         command.ExecuteNonQuery();
                     }
@@ -157,7 +159,7 @@ namespace DAL_234TL
                     string query = @"UPDATE Usuarios_234TL SET 
                                  Nombre = @Nombre, Apellido = @Apellido, Email = @Email, IdPerfil = @IdPerfil, 
                                  Bloqueo = @Bloqueo, Activo = @Activo, Login = @Login, Password = @Password, 
-                                 IntentosFallidos = @IntentosFallidos, UltimoIntentoFallido = @UltimoIntentoFallido
+                                 IntentosFallidos = @IntentosFallidos, UltimoIntentoFallido = @UltimoIntentoFallido, Idioma = @Idioma
                                  WHERE DNI = @DNI";
 
                     using (var command = new SqlCommand(query, conexion))
@@ -173,6 +175,7 @@ namespace DAL_234TL
                         command.Parameters.AddWithValue("@Password", entidad.Password);
                         command.Parameters.AddWithValue("@IntentosFallidos", entidad.IntentosFallidos);
                         command.Parameters.AddWithValue("@UltimoIntentoFallido", entidad.UltimoIntentoFallido ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Idioma", entidad.Idioma);
 
                         command.ExecuteNonQuery();
                     }

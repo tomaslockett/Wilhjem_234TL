@@ -5,13 +5,13 @@ using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormPerfiles : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormPerfiles_234TL : Form, IObserver_234TL<Dictionary<string, string>>
     {
         private PerfilBLL_234TL perfilBLL = new PerfilBLL_234TL();
         private FamiliaBLL_234TL familiaBLL = new FamiliaBLL_234TL();
         private PermisoBLL_234TL permisoBLL = new PermisoBLL_234TL();
         private Familia_234TL temporal;
-        public FormPerfiles()
+        public FormPerfiles_234TL()
         {
             InitializeComponent();
             Utilitarios_234TL.SuscribirAIdiomas(this);
@@ -66,6 +66,7 @@ namespace GUI_234TL
                 {
                     if (selectedItem is Permiso_234TL permiso)
                     {
+                        familiaBLL.ValidarPermisoNoRedundante(Padre, permiso);
                         bool permisoYaExiste = Padre.ObtenerHijos().Any(h => h is Permiso_234TL p && p.IdPermiso == permiso.IdPermiso);
                         if (!permisoYaExiste)
                         {
@@ -91,6 +92,10 @@ namespace GUI_234TL
                     CargarPerfiles();
                     Utilitarios_234TL.MensajeExito("PermisoAgregadoCorrectamente");
                 }
+            }
+            catch (InvalidOperationException ex) 
+            {
+                Utilitarios_234TL.MensajeError(ex.Message);
             }
             catch (Exception ex)
             {
@@ -141,10 +146,10 @@ namespace GUI_234TL
                     return;
                 }
 
-                //if (Utilitarios_234TL.MensajeConfirmacion("¿Está seguro de que desea eliminar permanentemente esta familia?") == DialogResult.No)
-                //{
-                //    return;
-                //}
+                if (Utilitarios_234TL.MensajeConfirmacion("Confirmacion_EliminarFamilia") == DialogResult.Yes)
+                {
+                    return;
+                }
 
                 familiaBLL.EliminarFamilia(familiaAEliminar);
 

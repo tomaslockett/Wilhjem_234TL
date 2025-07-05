@@ -22,6 +22,30 @@ namespace GUI_234TL
             IdiomasManager_234TL.Instancia.CambiarIdioma("es");
         }
 
+
+        private void AplicarPermisos()
+        {
+            var sesion = SingletonT_234TL<Sesion_234TL>.GetInstance();
+            bool logueado = sesion.IsLoggedIn_234TL();
+
+            IniciarSesionButton.Visible = !logueado;
+            CerrarSesionButton.Visible = logueado;
+            CambiarContraseñabutton.Visible = logueado;
+
+            GestionUsuarioButton.Visible = sesion.TienePermiso("ACCESO_USUARIOS");
+            PerfilesButton.Visible = sesion.TienePermiso("ACCESO_PERFILES");
+            BackupButton.Visible = sesion.TienePermiso("ACCESO_BACKUP");
+            RestoreButton.Visible = sesion.TienePermiso("ACCESO_RESTORE");
+            BitacoraEButton.Visible = sesion.TienePermiso("ACCESO_BITACORA");
+
+            GestionAdminbutton.Visible = PerfilesButton.Visible || BackupButton.Visible || RestoreButton.Visible || BitacoraEButton.Visible || GestionUsuarioButton.Visible;
+
+            RecepcionButton.Visible = sesion.TienePermiso("ACCESO_RECEPCION");
+            CrearOrdenButton.Visible = sesion.TienePermiso("ACCESO_CREAR_ORDEN");
+            GeneralFacturaYComprobanteButton.Visible = sesion.TienePermiso("ACCESO_FACTURAR");
+        }
+
+
         #region FormPrincipal
 
         private void FormPrincipal_234TL_FormClosed(object sender, FormClosedEventArgs e)
@@ -59,7 +83,11 @@ namespace GUI_234TL
             FormInicioSesion_234TL formInicioSesion = new FormInicioSesion_234TL();
             formInicioSesion.Owner = this;
             formInicioSesion.StartPosition = FormStartPosition.CenterParent;
-            formInicioSesion.ShowDialog(this);
+            DialogResult resultado = formInicioSesion.ShowDialog(this);
+            if (resultado == DialogResult.OK)
+            {
+                ActualizarUsuarioLogueado(usuario.GetUsuarioLogueado());
+            }
         }
 
         private void IniciarSesionButton_MouseHover(object sender, EventArgs e)
@@ -175,7 +203,7 @@ namespace GUI_234TL
         #region Perfiles
         private void PerfilesButton_Click(object sender, EventArgs e)
         {
-            FormPerfiles formPerfiles = new FormPerfiles();
+            FormPerfiles_234TL formPerfiles = new FormPerfiles_234TL();
             formPerfiles.Owner = this;
             formPerfiles.StartPosition = FormStartPosition.CenterParent;
             formPerfiles.ShowDialog(this);
@@ -217,7 +245,8 @@ namespace GUI_234TL
 
         public void ActualizarUsuarioLogueado(Usuario_234TL usuarioLogueado)
         {
-            UsuarioLogueado = usuarioLogueado;
+            this.UsuarioLogueado = usuarioLogueado;
+            AplicarPermisos();
         }
 
         #endregion Funciones

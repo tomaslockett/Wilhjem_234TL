@@ -31,7 +31,7 @@ namespace GUI_234TL
                 string nueva = textBox2.Text.Trim();
                 string confirmacion = textBox3.Text.Trim();
 
-                if (!SingletonSesion.GetInstance().IsLoggedIn_234TL())
+                if (!SingletonT_234TL<Sesion_234TL>.GetInstance().IsLoggedIn_234TL())
                 {
                     Utilitarios_234TL.MensajeError("Mensaje_NoUsuarioLogueado");
                     textBox1.Clear();

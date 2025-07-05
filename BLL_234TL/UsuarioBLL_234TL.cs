@@ -2,6 +2,7 @@
 using Servicios_234TL;
 using Servicios_234TL.Composite_234TL;
 using Servicios_234TL.Exception_234TL;
+using Servicios_234TL.Observer_234TL;
 using Servicios_234TL.Singleton_234TL;
 using System.Text.RegularExpressions;
 
@@ -41,6 +42,7 @@ namespace BLL_234TL
             }
             catch (Exception ex)
             {
+                throw new Exception("Error al generar las credenciales.", ex);
             }
         }
 
@@ -82,7 +84,7 @@ namespace BLL_234TL
                 throw new InvalidOperationException("El campo 'contraseña' es obligatorio.");
             }
 
-            var sesion = SingletonSesion.GetInstance();
+            var sesion = SingletonT_234TL<Sesion_234TL>.GetInstance();
             if (sesion.IsLoggedIn_234TL())
             {
                 throw new Exception("Ya existe una sesión activa en el sistema.");
@@ -145,11 +147,15 @@ namespace BLL_234TL
             _repositorio.Update(usuario);
 
             sesion.Login_234TL(usuario);
+            if (!string.IsNullOrWhiteSpace(usuario.Idioma))
+            {
+                IdiomasManager_234TL.Instancia.CambiarIdioma(usuario.Idioma);
+            }
         }
 
         public Resultados_234TL Logout()
         {
-            var sesion = SingletonSesion.GetInstance();
+            var sesion = SingletonT_234TL<Sesion_234TL>.GetInstance();
 
             if (!sesion.IsLoggedIn_234TL())
                 return Resultados_234TL.NoHayLogueado;
@@ -160,7 +166,7 @@ namespace BLL_234TL
 
         public Usuario_234TL GetUsuarioLogueado()
         {
-            var sesion = SingletonSesion.GetInstance();
+            var sesion = SingletonT_234TL<Sesion_234TL>.GetInstance();
 
             if (!sesion.IsLoggedIn_234TL())
                 return null;
@@ -228,6 +234,7 @@ namespace BLL_234TL
             usuario.Bloqueado = false;
             usuario.Activo = true;
             usuario.IntentosFallidos = 0;
+            usuario.Idioma = "es"; 
             GenerarCredenciales(usuario);
 
             _repositorio.Guardar(usuario);
@@ -290,5 +297,18 @@ namespace BLL_234TL
             return GetAll().Any(u => u.Email == Email && u.Login != loginActual);
         }
 
+        public void CambiarIdiomaUsuario(Usuario_234TL usuario, string nuevoCodigoIdioma)
+        {
+            if (usuario == null || string.IsNullOrWhiteSpace(nuevoCodigoIdioma))
+            {
+                throw new ArgumentException("Usuario o código de idioma no válido.");
+            }
+
+            usuario.Idioma = nuevoCodigoIdioma;
+
+            _repositorio.Update(usuario);
+
+            IdiomasManager_234TL.Instancia.CambiarIdioma(nuevoCodigoIdioma);
+        }
     }
 }

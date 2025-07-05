@@ -27,6 +27,26 @@ namespace Servicios_234TL.Singleton_234TL
             }
         }
 
+        public bool TienePermiso(string nombrePermiso)
+        {
+            if (usuario_ == null)
+            {
+                return false;
+            }
+
+            if (usuario_.Login.Equals("superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (usuario_.Perfil == null)
+            {
+                return false;
+            }
+
+            return usuario_.Perfil.ObtenerPermisos().Any(p => p.Nombre.Equals(nombrePermiso, StringComparison.OrdinalIgnoreCase));
+        }
+
         public void Logout_234TL()
         {
             usuario_ = null;

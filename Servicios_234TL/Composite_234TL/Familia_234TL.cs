@@ -35,39 +35,6 @@ namespace Servicios_234TL.Composite_234TL
         {
             return new List<IComponente_234TL>(hijos);
         }
-        public bool PuedeAgregarHijo(IComponente_234TL componente, out string motivoFallo)
-        {
-            if (this.ObtenerHijos().Any(h => h.EsIgual(componente)))
-            {
-                motivoFallo = $"El componente '{componente.Nombre}' ya es miembro de esta familia.";
-                return false;
-            }
-
-            if (componente is Permiso_234TL permiso)
-            {
-                if (this.ObtenerPermisos().Any(p => p.IdPermiso == permiso.IdPermiso))
-                {
-                    motivoFallo = $"El permiso '{permiso.Nombre}' ya está incluido en la jerarquía de esta familia.";
-                    return false;
-                }
-            }
-
-            if (componente is Familia_234TL familia)
-            {
-                if (familia.Id == this.Id || familia.ContieneEnJerarquia(this.Id))
-                {
-                    motivoFallo = "No se puede agregar esta familia porque crearía una dependencia circular.";
-                    return false;
-                }
-            }
-
-            motivoFallo = string.Empty;
-            return true;
-        }
-        public bool ContieneEnJerarquia(int idFamiliaBuscada)
-        {
-            return this.ObtenerHijos().OfType<Familia_234TL>().Any(hijo => hijo.Id == idFamiliaBuscada || hijo.ContieneEnJerarquia(idFamiliaBuscada));
-        }
 
         public List<Permiso_234TL> ObtenerPermisos()
         {

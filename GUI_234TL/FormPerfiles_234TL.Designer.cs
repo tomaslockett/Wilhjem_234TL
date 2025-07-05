@@ -1,6 +1,6 @@
 ﻿namespace GUI_234TL
 {
-    partial class FormPerfiles
+    partial class FormPerfiles_234TL
     {
         /// <summary>
         /// Required designer variable.

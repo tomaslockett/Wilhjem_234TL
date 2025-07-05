@@ -25,8 +25,6 @@ namespace GUI_234TL
             IdiomasManager_234TL.Instancia.NotificarActuales();
         }
 
-
-
         private void IngresarButton_Click(object sender, EventArgs e)
         {
             string login = textBox1.Text.Trim();

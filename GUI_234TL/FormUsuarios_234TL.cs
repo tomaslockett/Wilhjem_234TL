@@ -121,9 +121,7 @@ namespace GUI_234TL
 
             if (usuario.Activo)
             {
-                string mensaje = string.Format(traducciones["Mensaje_ConfirmarDesactivacion"], usuario.Login);
-                var Confirmar = MessageBox.Show(mensaje, traducciones["MensajeTitulo_Confirmacion"], MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (Confirmar == DialogResult.Yes)
+                if (Utilitarios_234TL.MensajeConfirmacion("Mensaje_ConfirmarDesactivacion", usuario.Login) == DialogResult.Yes)
                 {
                     bll.DesactivarUsuario(usuario);
                     Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesactivado");
@@ -131,14 +129,13 @@ namespace GUI_234TL
             }
             else
             {
-                string mensaje = string.Format(traducciones["Mensaje_ConfirmarActivacion"], usuario.Login);
-                var Confirmar2 = MessageBox.Show(mensaje, traducciones["MensajeTitulo_Confirmacion"], MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (Confirmar2 == DialogResult.Yes)
+                if (Utilitarios_234TL.MensajeConfirmacion("Mensaje_ConfirmarActivacion", usuario.Login) == DialogResult.Yes)
                 {
                     bll.ActivarUsuario(usuario);
-                    Utilitarios_234TL.MensajeExito("Usuario activado correctamente");
+                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioActivado");
                 }
             }
+
             CargarUsuarios();
             CargarDatosUsuario();
         }
@@ -310,6 +307,10 @@ namespace GUI_234TL
                             Utilitarios_234TL.MensajeError("Mensaje_NoEliminarAdmin");
                             return;
                         }
+                        if (Utilitarios_234TL.MensajeConfirmacion("Confirmacion_EliminarUsuario") != DialogResult.Yes)
+                        {
+                            return;
+                        }
                         bll.Eliminar(usuarioeliminar);
                         Utilitarios_234TL.MensajeExito("Mensaje_UsuarioEliminado");
                         CargarUsuarios();
@@ -397,7 +398,6 @@ namespace GUI_234TL
                 column.Visible = true;
             }
         }
-
         private void LimpiarCampos()
         {
             DNItextBox.Clear();
@@ -508,7 +508,6 @@ namespace GUI_234TL
                 OcultarColumnas();
             }
         }
-
         private void DataGridCompletado(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             ColorearFilasBloqueadas();
@@ -553,7 +552,6 @@ namespace GUI_234TL
             }
 
         }
-
 
         private void CargarPerfilesEnComboBox()
         {
