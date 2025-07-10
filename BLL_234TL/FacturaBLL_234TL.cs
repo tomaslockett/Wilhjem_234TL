@@ -1,10 +1,7 @@
 ﻿using BE_234TL;
 using DAL_234TL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using QuestPDF.Fluent;
+using Servicios_234TL.Exception_234TL;
 
 namespace BLL_234TL
 {
@@ -18,20 +15,20 @@ namespace BLL_234TL
         {
             var reparacion = reparacionBLL.GetAll().FirstOrDefault(r => r.NumeroReparacion == numeroReparacion);
 
-                if (reparacion == null)
-                {
-                    throw new ArgumentException("Mensaje_ReparacionNoEncontrada");
-                }
+            if (reparacion == null)
+            {
+                throw new ValidacionesException_234TL("ReparacionNoEncontrada", "General", numeroReparacion);
+            }
 
-                if (reparacion.FacturaGenerada)
-                {
-                    throw new InvalidOperationException("Mensaje_FacturaYaGenerada");
-                }
+            if (reparacion.FacturaGenerada)
+            {
+                throw new ValidacionesException_234TL("FacturaYaGenerada", "General", numeroReparacion);
+            }
 
-                if (!reparacion.Cobrado)
-                {
-                    throw new InvalidOperationException("Mensaje_DiagnosticoNoCobrado");
-                }
+            if (!reparacion.Cobrado)
+            {
+                throw new ValidacionesException_234TL("DiagnosticoNoCobradoParaFactura", "General", numeroReparacion);
+            }
 
             var factura = new Factura_234TL
             {
@@ -47,6 +44,18 @@ namespace BLL_234TL
             reparacionBLL.Update(reparacion);
 
             return factura;
+        }
+
+        public void GenerarPdf(Factura_234TL factura)
+        {
+            string facturasPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Facturas");
+            Directory.CreateDirectory(facturasPath); 
+
+            string filePath = Path.Combine(facturasPath, $"{factura.NumeroFactura}.pdf");
+
+            var document = new FacturaDocumentoBLL_234TL(factura);
+
+            document.GeneratePdf(filePath);
         }
 
     }

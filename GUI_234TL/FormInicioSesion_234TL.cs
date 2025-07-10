@@ -1,13 +1,15 @@
 ﻿using BLL_234TL;
 using Microsoft.VisualBasic.Logging;
 using Servicios_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormInicioSesion_234TL : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormInicioSesion_234TL : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private UsuarioBLL_234TL usuarioBLL;
 
@@ -35,17 +37,20 @@ namespace GUI_234TL
             {
                 usuarioBLL.Login(login, password);
 
-                Utilitarios_234TL.MensajeExito("Mensaje_UsuarioValido"); 
+                Utilitarios_234TL.MensajeExito("LoginExitoso", login);
                 this.DialogResult = DialogResult.OK; 
                 this.Close();
             }
-            catch (Exepcion_234TL ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+
+                textBox2.Clear();
+                textBox2.Focus();
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoLogin", ex);
             }
             finally
             {
@@ -82,17 +87,29 @@ namespace GUI_234TL
             this.Close();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL traduccion)
         {
-            this.Text = Traduccion["FormInicioSesion_234TL_Title"];
-            label1.Text = Traduccion["FormInicioSesion_234TL_Label_Titulo"];
-            label2.Text = Traduccion["FormInicioSesion_234TL_Label_Usuario"];
-            label3.Text = Traduccion["FormInicioSesion_234TL_Label_Contraseña"];
-            IngresarButton.Text = Traduccion["FormInicioSesion_234TL_Boton_Ingresar"];
-            VolverButton.Text = Traduccion["FormInicioSesion_234TL_Boton_Volver"];
-            label4.Text = Traduccion["FormInicioSesion_234TL_Label_EjemploUsuario"];
-            label5.Text = Traduccion["FormInicioSesion_234TL_Label_EjemploContraseña"];
-            MostrarButton.Text = Traduccion["FormInicioSesion_234TL_CheckBox_MostrarContraseña"];
+            try
+            {
+                var textos = traduccion.Forms.IniciaSesion;
+
+                this.Text = textos.Title;
+                label3.Text = textos.Label_Titulo;
+                label1.Text = textos.Label_Usuario; 
+                label2.Text = textos.Label_Contraseña; 
+
+                label4.Text = textos.Label_EjemploUsuario;
+                label5.Text = textos.Label_EjemploContraseña;
+
+                IngresarButton.Text = textos.IngresarBotton;
+                VolverButton.Text = traduccion.Comunes.VolverBotton; 
+
+                MostrarButton.Text = textos.CheckBox_MostrarContraseña;
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError("ErrorInesperadoLogin", ex);
+            }
         }
 
         private void FormInicioSesion_234TL_FormClosed(object sender, FormClosedEventArgs e)

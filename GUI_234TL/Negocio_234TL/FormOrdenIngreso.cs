@@ -1,12 +1,14 @@
 ﻿using BE_234TL;
 using BLL_234TL;
 using Servicios_234TL.Enum_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormOrdenIngreso : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormOrdenIngreso : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         EquipoBLL_234TL Equipobll = new();
         ClienteBLL_234TL Clientebll = new();
@@ -22,32 +24,51 @@ namespace GUI_234TL
             InitializeComponent();
             ConfigurarDataGrids();
             Utilitarios_234TL.SuscribirAIdiomas(this);
-            CargarDatos();
-            EstadoComboBox.DataSource = Enum.GetValues(typeof(EstadoReparacion_234TL));
-
-
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
-            this.Text = Traduccion["FormOrdenIngreso_Titulo"];
-            ClientesLabel.Text = Traduccion["FormOrdenIngreso_ClientesLabel"];
-            EquiposLabel.Text = Traduccion["FormOrdenIngreso_EquiposLabel"];
-            TecnicosLabel.Text = Traduccion["FormOrdenIngreso_TecnicosLabel"];
-            ClienteSeleccionadoLabel.Text = Traduccion["FormOrdenIngreso_ClienteSeleccionadoLabel"];
-            EquipoSeleccionadoLabel.Text = Traduccion["FormOrdenIngreso_EquipoSeleccionadoLabel"];
-            TecnicoSeleccionadoLabel.Text = Traduccion["FormOrdenIngreso_TecnicoSeleccionadoLabel"];
-            OrdenesLabel.Text = Traduccion["FormOrdenIngreso_OrdenesLabel"];
-            OrdenSeleccionadaLabel.Text = Traduccion["FormOrdenIngreso_OrdenSeleccionadaLabel"];
-            Equipobutton.Text = Traduccion["FormOrdenIngreso_BotonEquipo"];
-            Clientebutton.Text = Traduccion["FormOrdenIngreso_BotonCliente"];
-            Ordenbutton.Text = Traduccion["FormOrdenIngreso_BotonCrearOrden"];
-            EliminarOrdenButton.Text = Traduccion["FormOrdenIngreso_BotonEliminarOrden"];
-            textoBaseClienteSeleccionado = Traduccion["FormOrdenIngreso_ClienteSeleccionadoLabel"];
-            textoBaseEquipoSeleccionado = Traduccion["FormOrdenIngreso_EquipoSeleccionadoLabel"];
-            textoBaseTecnicoSeleccionado = Traduccion["FormOrdenIngreso_TecnicoSeleccionadoLabel"];
+            try
+            {
+                var textos = Traduccion.Forms.OrdenIngreso;
+                var textosEnum = Traduccion.Enums;
 
-            EstadoComboBox.DataSource = Enum.GetValues(typeof(EstadoReparacion_234TL)).Cast<EstadoReparacion_234TL>().Select(e => Traduccion[$"EstadoReparacion_{e.ToString()}"].ToList());
+                this.Text = textos.Title;
+
+                ClientesLabel.Text = textos.Label_Clientes;
+                EquiposLabel.Text = textos.Label_Equipos;
+                TecnicosLabel.Text = textos.Label_Tecnicos;
+                OrdenesLabel.Text = textos.Label_Ordenes;
+                EstadoLabel.Text = textos.Label_Estado;
+
+                textoBaseClienteSeleccionado = textos.Label_ClienteSeleccionado;
+                textoBaseEquipoSeleccionado = textos.Label_EquipoSeleccionado;
+                textoBaseTecnicoSeleccionado = textos.Label_TecnicoSeleccionado;
+                OrdenSeleccionadaLabel.Text = textos.Label_OrdenSeleccionada;
+
+                ConfigurarColumnasOrdenes(textos);
+                ConfigurarColumnasClientes(textos);
+                ConfigurarColumnasEquipos(textos);
+                ConfigurarColumnasTecnicos(textos);
+
+                Utilitarios_234TL.PoblarComboBox<EstadoReparacion_234TL>(EstadoComboBox, textosEnum.EstadoReparacion);
+
+                CargarDatos();
+
+                Equipobutton.Text = textos.NuevoEquipoBotton;
+                Clientebutton.Text = textos.NuevoClienteBotton;
+                Ordenbutton.Text = textos.CrearOrdenBotton;
+                EliminarOrdenButton.Text = textos.EliminarOrdenBotton;
+
+                dataGridViewClientes_SelectionChanged(null, null);
+                dataGridViewEquipos_SelectionChanged(null, null);
+                dataGridViewTecnicos_SelectionChanged(null, null);
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError("ErrorTraduccion", ex);
+            }
         }
 
         private void FormOrdenIngreso_FormClosed(object sender, FormClosedEventArgs e)
@@ -62,7 +83,7 @@ namespace GUI_234TL
             formIngresoEquipo.StartPosition = FormStartPosition.CenterParent;
             formIngresoEquipo.EquipoAgregadoOEliminado += (s, ev) =>
             {
-                CargarDatos(); 
+                CargarDatos();
             };
             formIngresoEquipo.ShowDialog(this);
 
@@ -75,7 +96,7 @@ namespace GUI_234TL
             formRegistrarCliente.StartPosition = FormStartPosition.CenterParent;
             formRegistrarCliente.ClienteAgregadoOEliminado += (s, ev) =>
             {
-                CargarDatos(); 
+                CargarDatos();
             };
             formRegistrarCliente.ShowDialog(this);
         }
@@ -86,17 +107,17 @@ namespace GUI_234TL
             {
                 if (dataGridViewClientes.SelectedRows.Count != 1)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionClienteIncompleta");
+                    Utilitarios_234TL.MensajeAdvertencia("SeleccionClienteIncompleta");
                     return;
                 }
                 if (dataGridViewEquipos.SelectedRows.Count != 1)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionEquipoIncompleta");
+                    Utilitarios_234TL.MensajeAdvertencia("SeleccionEquipoIncompleta");
                     return;
                 }
                 if (dataGridViewTecnicos.SelectedRows.Count != 1)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionTecnicoIncompleta");
+                    Utilitarios_234TL.MensajeAdvertencia("SeleccionTecnicoIncompleta");
                     return;
                 }
 
@@ -107,36 +128,54 @@ namespace GUI_234TL
                 var estado = estadoEnum.ToString();
 
                 Reparacionbll.CrearReparacion(cliente, equipo, tecnico, estado);
-                Utilitarios_234TL.MensajeExito("Exito_ReparacionCreada");
-
+                Utilitarios_234TL.MensajeExito("ReparacionCreadaExito");
                 CargarDatos();
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error_CreacionReparacion", ex);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoCrearOrden", ex);
             }
 
         }
 
         private void EliminarOrdenButton_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.SelectedRows.Count != 1)
+            try
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionIncompleta");
-                return;
-            }
-            var reparacionDTO = (ReparacionDTO_234TL)dataGridView1.SelectedRows[0].DataBoundItem;
+                if (dataGridView1.SelectedRows.Count != 1)
+                {
+                    Utilitarios_234TL.MensajeAdvertencia("SeleccionOrdenIncompleta");
+                    return;
+                }
+                var reparacionDTO = (ReparacionDTO_234TL)dataGridView1.SelectedRows[0].DataBoundItem;
 
-            var reparacion = Reparacionbll.GetAll().FirstOrDefault(e => string.Equals(e.NumeroReparacion.ToString(), reparacionDTO.NumeroReparacion, StringComparison.OrdinalIgnoreCase));
+                var reparacion = Reparacionbll.GetAll().FirstOrDefault(e => string.Equals(e.NumeroReparacion.ToString(), reparacionDTO.NumeroReparacion, StringComparison.OrdinalIgnoreCase));
 
-            if (reparacion != null)
-            {
-                Reparacionbll.Eliminar(reparacion);
-                CargarDatos();
+                if (reparacion != null)
+                {
+                    if (Utilitarios_234TL.MensajeConfirmacion(this,"ConfirmacionEliminarOrden", reparacion.NumeroReparacion) == DialogResult.Yes)
+                    {
+                        Reparacionbll.Eliminar(reparacion);
+                        CargarDatos();
+                        Utilitarios_234TL.MensajeExito("OrdenEliminadaExito");
+                    }
+                }
+                else
+                {
+                    Utilitarios_234TL.MensajeAdvertencia("ReparacionNoEncontrada", reparacionDTO.NumeroReparacion);
+                }
             }
-            else
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_NoSeEncontroReparacion");
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError("ErrorInesperadoEliminarOrden", ex);
             }
         }
 
@@ -152,10 +191,6 @@ namespace GUI_234TL
         {
             try
             {
-                ConfigurarColumnasOrdenes();
-                ConfigurarColumnasClientes();
-                ConfigurarColumnasEquipos();
-                ConfigurarColumnasTecnicos();
                 var equiposEnReparacion = Reparacionbll.GetAll().Select(r => r.Equipo.NumeroSerie).ToHashSet();
                 var equiposDisponibles = Equipobll.GetAll().Where(e => !equiposEnReparacion.Contains(e.NumeroSerie)).ToList();
                 dataGridViewEquipos.DataSource = equiposDisponibles;
@@ -166,7 +201,7 @@ namespace GUI_234TL
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error_CargaGeneral", ex);
+                Utilitarios_234TL.MensajeError("ErrorCargaGeneral", ex);
             }
         }
         private void ConfigurarDataGrids()
@@ -207,58 +242,57 @@ namespace GUI_234TL
             dataGridView1.AllowUserToResizeRows = false;
             dataGridView1.EditMode = DataGridViewEditMode.EditProgrammatically;
         }
-        private void ConfigurarColumnasOrdenes()
+
+        private void ConfigurarColumnasOrdenes(FormOrdenIngreso_234TL textos)
         {
             dataGridView1.AutoGenerateColumns = false;
             dataGridView1.Columns.Clear();
 
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroReparacion", HeaderText = "Número", DataPropertyName = "NumeroReparacion" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", HeaderText = "Estado", DataPropertyName = "Estado" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", HeaderText = "N° Serie", DataPropertyName = "NumeroSerie" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreCliente", HeaderText = "Cliente", DataPropertyName = "NombreCliente" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNICliente", HeaderText = "DNI", DataPropertyName = "DNICliente" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreTecnico", HeaderText = "Técnico", DataPropertyName = "NombreTecnico" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_EspecialidadTecnico", HeaderText = "Especialidad", DataPropertyName = "EspecialidadTecnico" });
-            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Cobrado", HeaderText = "Cobrado", DataPropertyName = "Cobrado" });
-            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_FacturaGenerada", HeaderText = "Factura Generada", DataPropertyName = "FacturaGenerada" });
-            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_ComprobanteGenerado", HeaderText = "Comprobante Generado", DataPropertyName = "ComprobanteGenerado" });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroReparacion", DataPropertyName = "NumeroReparacion", HeaderText = textos.Columna_NumeroReparacion });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", DataPropertyName = "Estado", HeaderText = textos.Columna_Estado });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", DataPropertyName = "NumeroSerie", HeaderText = textos.Columna_NumeroSerie });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreCliente", DataPropertyName = "NombreCliente", HeaderText = "Cliente" }); 
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNICliente", DataPropertyName = "DNICliente", HeaderText = "DNI Cliente" }); 
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreTecnico", DataPropertyName = "NombreTecnico", HeaderText = "Técnico" });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_EspecialidadTecnico", DataPropertyName = "EspecialidadTecnico", HeaderText = textos.Columna_Especialidad });
+            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Cobrado", DataPropertyName = "Cobrado", HeaderText = "Cobrado" }); 
+            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_FacturaGenerada", DataPropertyName = "FacturaGenerada", HeaderText = "Factura" }); 
+            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_ComprobanteGenerado", DataPropertyName = "ComprobanteGenerado", HeaderText = "Comprobante" }); 
         }
-        private void ConfigurarColumnasClientes()
+
+        private void ConfigurarColumnasClientes(FormOrdenIngreso_234TL textos)
         {
             dataGridViewClientes.AutoGenerateColumns = false;
             dataGridViewClientes.Columns.Clear();
-            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNI", HeaderText = "DNI", DataPropertyName = "Dni" });
-            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Nombre", HeaderText = "Nombre", DataPropertyName = "Nombre" });
-            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Apellido", HeaderText = "Apellido", DataPropertyName = "Apellido" });
-            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Telefono", HeaderText = "Telefono", DataPropertyName = "Telefono" });
-
+            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNI", DataPropertyName = "Dni", HeaderText = textos.Columna_DNI });
+            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Nombre", DataPropertyName = "Nombre", HeaderText = textos.Columna_Nombre });
+            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Apellido", DataPropertyName = "Apellido", HeaderText = textos.Columna_Apellido });
+            dataGridViewClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Telefono", DataPropertyName = "Telefono", HeaderText = textos.Columna_Telefono });
         }
 
-        private void ConfigurarColumnasEquipos()
+        private void ConfigurarColumnasEquipos(FormOrdenIngreso_234TL textos)
         {
             dataGridViewEquipos.AutoGenerateColumns = false;
             dataGridViewEquipos.Columns.Clear();
-            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", HeaderText = "N° Serie", DataPropertyName = "NumeroSerie" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Marca", HeaderText = "Marca", DataPropertyName = "Marca" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Modelo", HeaderText = "Modelo", DataPropertyName = "Modelo" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", HeaderText = "Estado", DataPropertyName = "Estado" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_FallaReportada", HeaderText = "Falla Reportada", DataPropertyName = "FallaReportada" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_HoraIngreso", HeaderText = "Hora Ingreso", DataPropertyName = "HoraIngreso" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Desarmado", HeaderText = "Desarmado", DataPropertyName = "Desarmado" });
-            dataGridViewEquipos.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_DañoVisible", HeaderText = "Daño Visible", DataPropertyName = "DañoVisible" });
+            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", DataPropertyName = "NumeroSerie", HeaderText = textos.Columna_NumeroSerie });
+            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Marca", DataPropertyName = "Marca", HeaderText = textos.Columna_Marca });
+            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Modelo", DataPropertyName = "Modelo", HeaderText = textos.Columna_Modelo });
+            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", DataPropertyName = "Estado", HeaderText = textos.Columna_Estado });
+            dataGridViewEquipos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_FallaReportada", DataPropertyName = "FallaReportada", HeaderText = textos.Columna_Falla });
+            dataGridViewEquipos.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Desarmado", DataPropertyName = "Desarmado", HeaderText = "Desarmado" });
+            dataGridViewEquipos.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_DañoVisible", DataPropertyName = "DañoVisible", HeaderText = "Daño Visible" });
         }
-
-        private void ConfigurarColumnasTecnicos()
+        private void ConfigurarColumnasTecnicos(FormOrdenIngreso_234TL textos)
         {
             dataGridViewTecnicos.AutoGenerateColumns = false;
             dataGridViewTecnicos.Columns.Clear();
-            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNI", HeaderText = "DNI", DataPropertyName = "Dni" });
-            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Nombre", HeaderText = "Nombre", DataPropertyName = "Nombre" });
-            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Apellido", HeaderText = "Apellido", DataPropertyName = "Apellido" });
-            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Telefono", HeaderText = "Telefono", DataPropertyName = "Telefono" });
-            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Especialidad", HeaderText = "Especialidad", DataPropertyName = "Especialidad" });
-            dataGridViewTecnicos.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Disponible", HeaderText = "Disponible", DataPropertyName = "Disponible" });
+            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNI", DataPropertyName = "Dni", HeaderText = textos.Columna_DNI });
+            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Nombre", DataPropertyName = "Nombre", HeaderText = textos.Columna_Nombre });
+            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Apellido", DataPropertyName = "Apellido", HeaderText = textos.Columna_Apellido });
+            dataGridViewTecnicos.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Especialidad", DataPropertyName = "Especialidad", HeaderText = textos.Columna_Especialidad });
+            dataGridViewTecnicos.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Disponible", DataPropertyName = "Disponible", HeaderText = textos.Columna_Disponible });
         }
+
 
         private void dataGridViewEquipos_SelectionChanged(object sender, EventArgs e)
         {

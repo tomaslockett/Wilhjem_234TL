@@ -34,6 +34,20 @@ namespace DAL_234TL
             }
         }
 
+        public bool FamiliaEstaAsignadaComoHijo(int idFamilia)
+        {
+            using (var conexion = new SqlConnection(connectionString))
+            {
+                conexion.Open();
+                string query = "SELECT COUNT(1) FROM FamiliaHijos_234TL WHERE IdHijo = @IdHijo";
+                using (var cmd = new SqlCommand(query, conexion))
+                {
+                    cmd.Parameters.AddWithValue("@IdHijo", idFamilia);
+                    return (int)cmd.ExecuteScalar() > 0;
+                }
+            }
+        }
+
         public override void EliminarKey(int key)
         {
             try

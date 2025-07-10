@@ -45,6 +45,9 @@
             RecepcionButton = new Button();
             CrearOrdenButton = new Button();
             GeneralFacturaYComprobanteButton = new Button();
+            MaestrosButton = new Button();
+            TecnicosButton = new Button();
+            Pdfbutton = new Button();
             pictureBox1 = new PictureBox();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
@@ -70,9 +73,12 @@
             flowLayoutPanel1.Controls.Add(RecepcionButton);
             flowLayoutPanel1.Controls.Add(CrearOrdenButton);
             flowLayoutPanel1.Controls.Add(GeneralFacturaYComprobanteButton);
+            flowLayoutPanel1.Controls.Add(MaestrosButton);
+            flowLayoutPanel1.Controls.Add(TecnicosButton);
+            flowLayoutPanel1.Controls.Add(Pdfbutton);
             flowLayoutPanel1.Location = new Point(12, 12);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(238, 661);
+            flowLayoutPanel1.Size = new Size(238, 834);
             flowLayoutPanel1.TabIndex = 0;
             // 
             // SesionButton
@@ -233,10 +239,40 @@
             GeneralFacturaYComprobanteButton.UseVisualStyleBackColor = true;
             GeneralFacturaYComprobanteButton.Click += GeneralFacturaYComprobanteButton_Click;
             // 
+            // MaestrosButton
+            // 
+            MaestrosButton.Location = new Point(3, 663);
+            MaestrosButton.Name = "MaestrosButton";
+            MaestrosButton.Size = new Size(176, 38);
+            MaestrosButton.TabIndex = 15;
+            MaestrosButton.Text = "Maestros";
+            MaestrosButton.UseVisualStyleBackColor = true;
+            MaestrosButton.Click += MaestrosButton_Click;
+            // 
+            // TecnicosButton
+            // 
+            TecnicosButton.Location = new Point(3, 707);
+            TecnicosButton.Name = "TecnicosButton";
+            TecnicosButton.Size = new Size(176, 38);
+            TecnicosButton.TabIndex = 16;
+            TecnicosButton.Text = "Tecnicos";
+            TecnicosButton.UseVisualStyleBackColor = true;
+            TecnicosButton.Click += TecnicosButton_Click;
+            // 
+            // Pdfbutton
+            // 
+            Pdfbutton.Location = new Point(3, 751);
+            Pdfbutton.Name = "Pdfbutton";
+            Pdfbutton.Size = new Size(176, 38);
+            Pdfbutton.TabIndex = 17;
+            Pdfbutton.Text = "Gestor De Pdf";
+            Pdfbutton.UseVisualStyleBackColor = true;
+            Pdfbutton.Click += Pdfbutton_Click;
+            // 
             // pictureBox1
             // 
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1348, 441);
+            pictureBox1.Location = new Point(1351, 601);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(266, 245);
             pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
@@ -246,9 +282,9 @@
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
-            statusStrip1.Location = new Point(0, 676);
+            statusStrip1.Location = new Point(0, 849);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1626, 22);
+            statusStrip1.Size = new Size(1629, 22);
             statusStrip1.TabIndex = 2;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -263,7 +299,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(1626, 698);
+            ClientSize = new Size(1629, 871);
             Controls.Add(statusStrip1);
             Controls.Add(pictureBox1);
             Controls.Add(flowLayoutPanel1);
@@ -298,5 +334,8 @@
         private Button RecepcionButton;
         private Button CrearOrdenButton;
         private Button GeneralFacturaYComprobanteButton;
+        private Button MaestrosButton;
+        private Button TecnicosButton;
+        private Button Pdfbutton;
     }
 }

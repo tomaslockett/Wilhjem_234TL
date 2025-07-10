@@ -24,6 +24,6 @@ namespace BE_234TL
         }
 
         public virtual string NombreCompleto => $"{Nombre} {Apellido}";
-        public virtual string InfoBasica => $"{NombreCompleto} - Tel: {Telefono}";
+        public virtual string InfoBasica => $"{NombreCompleto}";
     }
 }

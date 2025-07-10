@@ -1,20 +1,14 @@
 ﻿using BE_234TL;
 using BLL_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
+using System.Diagnostics;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormFacturaYComprobante : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormFacturaYComprobante : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         ReparacionDTOBLL_234TL ReparacionDTObll = new();
 
@@ -22,29 +16,29 @@ namespace GUI_234TL
         {
             InitializeComponent();
             Utilitarios_234TL.SuscribirAIdiomas(this);
-            ConfigurarColumnasOrdenes();
             ConfigurarDataGrids();
+            IdiomasManager_234TL.Instancia.NotificarActuales();
             dataGridViewReparaciones.DataSource = ReparacionDTObll.ObtenerReparacionesDTO();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
-            this.Text = Traduccion["FormFacturaYComprobante_Titulo"];
-            CobrarDiagnosticoButton.Text = Traduccion["FormFacturaYComprobante_BotonCobrarDiagnostico"];
-            CrearFacturaButton.Text = Traduccion["FormFacturaYComprobante_BotonCrearFactura"];
-            CrearComprobanteButton.Text = Traduccion["FormFacturaYComprobante_BotonCrearComprobante"];
+            try
+            {
+                var textos = Traduccion.Forms.FacturaYComprobante;
 
+                this.Text = textos.Title;
 
-            dataGridViewReparaciones.Columns["Columna_NumeroReparacion"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_NumeroReparacion"];
-            dataGridViewReparaciones.Columns["Columna_Estado"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_Estado"];
-            dataGridViewReparaciones.Columns["Columna_NumeroSerie"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_NumeroSerie"];
-            dataGridViewReparaciones.Columns["Columna_NombreCliente"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_NombreCliente"];
-            dataGridViewReparaciones.Columns["Columna_DNICliente"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_DNICliente"];
-            dataGridViewReparaciones.Columns["Columna_NombreTecnico"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_NombreTecnico"];
-            dataGridViewReparaciones.Columns["Columna_EspecialidadTecnico"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_EspecialidadTecnico"];
-            dataGridViewReparaciones.Columns["Columna_Cobrado"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_Cobrado"];
-            dataGridViewReparaciones.Columns["Columna_FacturaGenerada"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_FacturaGenerada"];
-            dataGridViewReparaciones.Columns["Columna_ComprobanteGenerado"].HeaderText =Traduccion["FormFacturaYComprobante_Columna_ComprobanteGenerado"];
+                CobrarDiagnosticoButton.Text = textos.CobrarDiagnosticoBotton;
+                CrearFacturaButton.Text = textos.CrearFacturaBotton;
+                CrearComprobanteButton.Text = textos.CrearComprobanteBotton;
+
+                ConfigurarColumnasOrdenes(textos);
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError("ErrorTraduccion", ex);
+            }
         }
 
         private void FormFacturaYComprobante_FormClosed(object sender, FormClosedEventArgs e)
@@ -69,7 +63,7 @@ namespace GUI_234TL
         {
             if (dataGridViewReparaciones.SelectedRows.Count == 0)
             {
-                Utilitarios_234TL.MensajeAdvertencia("Mensaje_SeleccionReparacion");
+                Utilitarios_234TL.MensajeAdvertencia("SeleccionarReparacion");
                 return;
             }
 
@@ -79,23 +73,27 @@ namespace GUI_234TL
             try
             {
                 int numeroReparacion = int.Parse(reparacionDTO.NumeroReparacion);
-                decimal total = 10000m; 
+                decimal total = 10000m;
 
                 var facturaBLL = new FacturaBLL_234TL();
                 var factura = facturaBLL.CrearFacturaParaReparacion(numeroReparacion, total);
-
-                Utilitarios_234TL.MensajeExito("Exito_FacturaGenerada", factura.NumeroFactura, numeroReparacion);
-
+                facturaBLL.GenerarPdf(factura);
+                Utilitarios_234TL.MensajeExito("FacturaGeneradaExito", factura.NumeroFactura, numeroReparacion);
+                string rutaPdf = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Facturas", $"{factura.NumeroFactura}.pdf");
+                if (File.Exists(rutaPdf))
+                {
+                    Process.Start(new ProcessStartInfo(rutaPdf) { UseShellExecute = true });
+                }
                 dataGridViewReparaciones.DataSource = null;
                 dataGridViewReparaciones.DataSource = ReparacionDTObll.ObtenerReparacionesDTO();
             }
-            catch (InvalidOperationException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeAdvertencia(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Mensaje_ErrorGenerarFactura", ex);
+                Utilitarios_234TL.MensajeError("ErrorGenerarFactura", ex);
             }
 
         }
@@ -104,7 +102,7 @@ namespace GUI_234TL
         {
             if (dataGridViewReparaciones.SelectedRows.Count == 0)
             {
-                Utilitarios_234TL.MensajeAdvertencia("Mensaje_SeleccionReparacion");
+                Utilitarios_234TL.MensajeAdvertencia("SeleccionarReparacion");
                 return;
             }
 
@@ -118,36 +116,101 @@ namespace GUI_234TL
 
                 var comprobante = comprobanteBLL.CrearComprobanteParaReparacion(numeroReparacion);
 
-                Utilitarios_234TL.MensajeExito("Exito_ComprobanteGenerado", comprobante.NumeroIngreso, numeroReparacion);
+                comprobanteBLL.GenerarPdf(comprobante);
 
+                Utilitarios_234TL.MensajeExito("ComprobanteGeneradoExito", comprobante.NumeroIngreso, numeroReparacion);
+                string rutaPdf = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Comprobantes", $"{comprobante.NumeroIngreso}.pdf");
+                if (File.Exists(rutaPdf))
+                {
+                    Process.Start(new ProcessStartInfo(rutaPdf) { UseShellExecute = true });
+                }
                 dataGridViewReparaciones.DataSource = null;
                 dataGridViewReparaciones.DataSource = ReparacionDTObll.ObtenerReparacionesDTO();
             }
-            catch (InvalidOperationException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeAdvertencia(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Mensaje_ErrorGenerarComprobante", ex);
+                Utilitarios_234TL.MensajeError("ErrorGenerarComprobante", ex);
             }
         }
-        private void ConfigurarColumnasOrdenes()
+        private void ConfigurarColumnasOrdenes(FormFacturaYComprobatne_234TL textos)
         {
             dataGridViewReparaciones.AutoGenerateColumns = false;
             dataGridViewReparaciones.Columns.Clear();
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_NumeroReparacion",
+                DataPropertyName = "NumeroReparacion",
+                HeaderText = textos.Columna_NumeroReparacion
+            });
 
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroReparacion", HeaderText = "Número", DataPropertyName = "NumeroReparacion" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", HeaderText = "Estado", DataPropertyName = "Estado" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", HeaderText = "N° Serie", DataPropertyName = "NumeroSerie" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreCliente", HeaderText = "Cliente", DataPropertyName = "NombreCliente" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNICliente", HeaderText = "DNI", DataPropertyName = "DNICliente" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreTecnico", HeaderText = "Técnico", DataPropertyName = "NombreTecnico" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_EspecialidadTecnico", HeaderText = "Especialidad", DataPropertyName = "EspecialidadTecnico" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Cobrado", HeaderText = "Cobrado", DataPropertyName = "Cobrado" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_FacturaGenerada", HeaderText = "Factura Generada", DataPropertyName = "FacturaGenerada" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_ComprobanteGenerado", HeaderText = "Comprobante Generado", DataPropertyName = "ComprobanteGenerado" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_Estado",
+                DataPropertyName = "Estado",
+                HeaderText = textos.Columna_Estado
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_NumeroSerie",
+                DataPropertyName = "NumeroSerie",
+                HeaderText = textos.Columna_NumeroSerie
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_NombreCliente",
+                DataPropertyName = "NombreCliente",
+                HeaderText = textos.Columna_NombreCliente
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_DNICliente",
+                DataPropertyName = "DNICliente",
+                HeaderText = textos.Columna_DNICliente
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_NombreTecnico",
+                DataPropertyName = "NombreTecnico",
+                HeaderText = textos.Columna_NombreTecnico
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Columna_EspecialidadTecnico",
+                DataPropertyName = "EspecialidadTecnico",
+                HeaderText = textos.Columna_EspecialidadTecnico
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                Name = "Columna_Cobrado",
+                DataPropertyName = "Cobrado",
+                HeaderText = textos.Columna_Cobrado
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                Name = "Columna_FacturaGenerada",
+                DataPropertyName = "FacturaGenerada",
+                HeaderText = textos.Columna_FacturaGenerada
+            });
+
+            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                Name = "Columna_ComprobanteGenerado",
+                DataPropertyName = "ComprobanteGenerado",
+                HeaderText = textos.Columna_ComprobanteGenerado
+            });
         }
+
         private void ConfigurarDataGrids()
         {
             dataGridViewReparaciones.ReadOnly = true;

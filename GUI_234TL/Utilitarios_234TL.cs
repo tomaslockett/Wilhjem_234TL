@@ -2,6 +2,7 @@
 using GUI_234TL;
 using Servicios_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -27,31 +28,15 @@ namespace Wilhjem
             Boton.Size = new Size((int)(ancho * 1.1), (int)(altura * 1.1));
         }
 
-        //public static void CambiarUsuarioToolStrip(ToolStripStatusLabel label, Usuario_234TL usuario)
-        //{
-        //    try
-        //    {
-        //        if (usuario != null)
-        //        {
-        //            label.Text = $"¡Bienvenido/a, {usuario.Nombre}! ¡Que tengas una excelente jornada!";
-        //        }
-        //        else
-        //        {
-        //            label.Text = "Usuario: No hay usuario logueado";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show(ex.Message);
-        //    }
-        //}
-        //Basura 
-        public static void MensajeInformacion(string mensaje)
+        public static void MensajeInformacion(string mensaje, params object[] args)
         {
             try
             {
                 var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-                MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Informacion"], MessageBoxButtons.OK, MessageBoxIcon.Information);
+                string textoOriginal = traduccion.Messages.Informacion[mensaje];
+                string textoFormateado = string.Format(textoOriginal, args);
+                string titulo = traduccion.Comunes.Title_Informacion;
+                MessageBox.Show(textoFormateado, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -59,21 +44,21 @@ namespace Wilhjem
             }
         }
 
-        public static void MensajeError(string mensaje, Exception ex = null)
+        public static void MensajeError(string mensaje, Exception ex = null, params object[] args)
         {
             try
             {
-                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
 
-                string titulo = traduccion["MensajeTitulo_Error"];
-                string texto = traduccion[mensaje];
+                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+                string titulo = traduccion.Comunes.Title_Error;
+                string textoOriginal = traduccion.Messages.Error[mensaje];
+                string textoFormateado = string.Format(textoOriginal, args);
 
                 if (ex != null)
                 {
-                    texto += ex.Message;
+                    textoFormateado += $"\n\nDetalle: {ex.Message}";
                 }
-
-                MessageBox.Show(texto, titulo, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(textoFormateado, titulo, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex2)
             {
@@ -82,12 +67,15 @@ namespace Wilhjem
         }
 
 
-        public static void MensajeAdvertencia(string mensaje)
+        public static void MensajeAdvertencia(string mensaje, params object[] args)
         {
             try
             {
                 var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-                MessageBox.Show(traduccion[mensaje], traduccion["MensajeTitulo_Advertencia"], MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                string textoOriginal = traduccion.Messages.Peligro[mensaje];
+                string textoFormateado = string.Format(textoOriginal, args);
+                string titulo = traduccion.Comunes.Title_Peligro;
+                MessageBox.Show(textoFormateado, titulo, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
@@ -95,36 +83,59 @@ namespace Wilhjem
             }
         }
 
-        public static void MensajeExito(string clave, params object[] args)
+        public static void MensajeExito(string mensaje, params object[] args)
         {
             try
             {
                 var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-                string mensaje = string.Format(traduccion[clave], args);
-                string titulo = traduccion["MensajeTitulo_Exito"];
-                MessageBox.Show(mensaje, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                string text = string.Format(traduccion.Messages.Exito[mensaje], args);
+                string titulo = traduccion.Comunes.Title_Exito;
+                MessageBox.Show(text, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Falló la traducción para la clave '{clave}': {ex.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Falló la traducción para la clave '{mensaje}': {ex.Message}", "Error de Traducción", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        public static DialogResult MensajeConfirmacion(string claveMensaje, params object[] args)
+        public static DialogResult MensajeConfirmacion(Form owner,string claveMensaje, params object[] args)
         {
-            using (var formMessaBox_234TL = new FormMessageBox_234TL(claveMensaje, args))
-            {
-                return formMessaBox_234TL.ShowDialog();
-            }
+            return FormMessageBox_234TL.Mostrar(owner,claveMensaje,MessageBoxButtons.YesNo,MessageBoxIcon.Question,args);
         }
 
-        public static void SuscribirAIdiomas(IObserver_234TL<Dictionary<string, string>> observer)
+        public static void SuscribirAIdiomas(IObserver_234TL<TraduccionesClase_234TL> observer)
         {
             IdiomasManager_234TL.Instancia.Subscribe(observer);
         }
-        public static void DesuscribirDeIdiomas(IObserver_234TL<Dictionary<string, string>> observer)
+        public static void DesuscribirDeIdiomas(IObserver_234TL<TraduccionesClase_234TL> observer)
         {
             IdiomasManager_234TL.Instancia.Unsubscribe(observer);
         }
+
+        public static void PoblarComboBox<TEnum>(ComboBox comboBox, Dictionary<string, string> traducciones) where TEnum : Enum
+        {
+            var items = new List<KeyValuePair<TEnum, string>>();
+
+            foreach (TEnum valor in Enum.GetValues(typeof(TEnum)))
+            {
+                string textoTraducido = traducciones.ContainsKey(valor.ToString())
+                    ? traducciones[valor.ToString()]
+                    : valor.ToString();
+
+                items.Add(new KeyValuePair<TEnum, string>(valor, textoTraducido));
+            }
+
+            object valorSeleccionado = comboBox.SelectedValue;
+
+            comboBox.DataSource = items;
+            comboBox.DisplayMember = "Value";
+            comboBox.ValueMember = "Key";
+
+            if (valorSeleccionado != null)
+            {
+                comboBox.SelectedValue = valorSeleccionado;
+            }
+        }
+
     }
 }

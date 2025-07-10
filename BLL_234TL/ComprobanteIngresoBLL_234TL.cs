@@ -1,5 +1,7 @@
 ﻿using BE_234TL;
 using DAL_234TL;
+using QuestPDF.Fluent;
+using Servicios_234TL.Exception_234TL;
 
 namespace BLL_234TL
 {
@@ -17,15 +19,15 @@ namespace BLL_234TL
 
             if (reparacion == null)
             {
-                throw new ArgumentException("Mensaje_NoSeEncontroReparacion");
+                throw new ValidacionesException_234TL("ReparacionNoEncontrada", "General", numeroReparacion);
             }
             if (!reparacion.Cobrado)
             {
-                throw new InvalidOperationException("Mensaje_DiagnosticoNoCobrado");
+                throw new ValidacionesException_234TL("DiagnosticoNoCobradoParaComprobante", "General", numeroReparacion);
             }
             if (reparacion.ComprobanteGenerado)
             {
-                throw new InvalidOperationException("Mensaje_ComprobanteYaGenerado");
+                throw new ValidacionesException_234TL("ComprobanteYaGenerado", "General", numeroReparacion);
             }
 
             var comprobante = new BE_234TL.ComprobanteIngreso_234TL
@@ -42,6 +44,16 @@ namespace BLL_234TL
             reparacionBLL.Update(reparacion);
 
             return comprobante;
+        }
+        public void GenerarPdf(ComprobanteIngreso_234TL comprobante)
+        {
+            string comprobantesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Comprobantes");
+            Directory.CreateDirectory(comprobantesPath);
+
+            string filePath = Path.Combine(comprobantesPath, $"{comprobante.NumeroIngreso}.pdf");
+
+            var document = new ComprobanteDocumentoBLL_234TL(comprobante);
+            document.GeneratePdf(filePath);
         }
     }
 }

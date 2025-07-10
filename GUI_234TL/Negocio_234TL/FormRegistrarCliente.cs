@@ -1,6 +1,8 @@
 ﻿using BE_234TL;
 using BLL_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,7 +17,7 @@ using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormRegistrarCliente : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormRegistrarCliente : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private readonly ClienteBLL_234TL bll = new ClienteBLL_234TL();
         public event EventHandler ClienteAgregadoOEliminado;
@@ -24,33 +26,34 @@ namespace GUI_234TL
             InitializeComponent();
             Utilitarios_234TL.SuscribirAIdiomas(this);
             CargarClientes();
-            ConfigurarColumnas();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
             try
             {
-                this.Text = Traduccion["FormRegistrarCliente_Titulo"];
-                ClientesLabel.Text = Traduccion["FormRegistrarCliente_ClientesLabel"];
-                DNILabel.Text = Traduccion["FormRegistrarCliente_DNILabel"];
-                NombreLabel.Text = Traduccion["FormRegistrarCliente_NombreLabel"];
-                ApellidoLabel.Text = Traduccion["FormRegistrarCliente_ApellidoLabel"];
-                NumeroTelefonicoLabel.Text = Traduccion["FormRegistrarCliente_TelefonoLabel"];
-                RegistrarClientebutton.Text = Traduccion["FormRegistrarCliente_RegistrarButton"];
-                EliminarClienteButton.Text = Traduccion["FormRegistrarCliente_EliminarButton"];
-
-                if (dataGridView1.Columns.Count >= 4)
+                var textos = Traduccion.Forms.RegistroCliente;
+                if (textos == null)
                 {
-                    dataGridView1.Columns[0].HeaderText = Traduccion["ColumnaDNI"];
-                    dataGridView1.Columns[1].HeaderText = Traduccion["ColumnaNombre"];
-                    dataGridView1.Columns[2].HeaderText = Traduccion["ColumnaApellido"];
-                    dataGridView1.Columns[3].HeaderText = Traduccion["ColumnaTelefono"];
+                    MessageBox.Show("Exploto");
+                    return;
                 }
+
+                this.Text = textos.Title;
+                ClientesLabel.Text = textos.Label_Titulo;
+
+                DNILabel.Text = textos.Label_DNI;
+                NombreLabel.Text = textos.Label_Nombre;
+                ApellidoLabel.Text = textos.Label_Apellido;
+                NumeroTelefonicoLabel.Text = textos.Label_Telefono;
+
+                RegistrarClientebutton.Text = textos.RegistrarBotton;
+                EliminarClienteButton.Text = textos.EliminarBotton;
+                ConfigurarColumnas(textos);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error en traducción: {ex.Message}");
+                Utilitarios_234TL.MensajeError("ErrorTraduccion", ex);
             }
         }
 
@@ -61,26 +64,46 @@ namespace GUI_234TL
 
         private void RegistrarClientebutton_Click(object sender, EventArgs e)
         {
-            if (!ValidarCampos())
-                return;
-
-            var cliente = new Cliente_234TL(
-                dni: DNITextBox.Text.Trim(),
-                nombre: NombreTextBox.Text.Trim(),
-                apellido: ApellidoTextBox.Text.Trim(),
-                telefono: TelefonoTextBox.Text.Trim()
-            );
-
-            if (!bll.RegistrarCliente(cliente))
+            try
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_ClienteExistente");
-                return;
-            }
+                var cliente = new Cliente_234TL(
+                    dni: DNITextBox.Text.Trim(),
+                    nombre: NombreTextBox.Text.Trim(),
+                    apellido: ApellidoTextBox.Text.Trim(),
+                    telefono: TelefonoTextBox.Text.Trim()
+                );
 
-            Utilitarios_234TL.MensajeExito("Exito_ClienteRegistrado");
-            LimpiarCampos();
-            CargarClientes();
-            ClienteAgregadoOEliminado?.Invoke(this, EventArgs.Empty);
+                bll.RegistrarNuevoCliente(cliente);
+
+                Utilitarios_234TL.MensajeExito("ClienteRegistradoExito");
+                LimpiarCampos();
+                CargarClientes();
+                ClienteAgregadoOEliminado?.Invoke(this, EventArgs.Empty);
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+
+                switch (ex.Nombre)
+                {
+                    case "DNI":
+                        DNITextBox.Focus();
+                        break;
+                    case "Nombre":
+                        NombreTextBox.Focus();
+                        break;
+                    case "Apellido":
+                        ApellidoTextBox.Focus();
+                        break;
+                    case "Telefono":
+                        TelefonoTextBox.Focus();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Utilitarios_234TL.MensajeError("ErrorInesperadoRegistroCliente", ex);
+            }
         }
 
         private void LimpiarCampos()
@@ -90,51 +113,7 @@ namespace GUI_234TL
             ApellidoTextBox.Clear();
             TelefonoTextBox.Clear();
         }
-        private bool ValidarCampos()
-        {
-            var regexDni = new System.Text.RegularExpressions.Regex(@"^\d{7,8}$");
-            var regexNombreApellido = new System.Text.RegularExpressions.Regex(@"^[A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,40}$");
-            var regexTelefono = new System.Text.RegularExpressions.Regex(@"^\d{6,15}$");
 
-            string dni = DNITextBox.Text.Trim();
-
-            if (!regexDni.IsMatch(DNITextBox.Text))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_DNI_Invalido");
-                DNITextBox.Focus();
-                return false;
-            }
-
-            if (!regexNombreApellido.IsMatch(NombreTextBox.Text))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_Nombre_Invalido");
-                NombreTextBox.Focus();
-                return false;
-            }
-
-            if (dni == "00000000" || dni == "0000000")
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_DNI_TodoCeros");
-                DNITextBox.Focus();
-                return false;
-            }
-
-            if (!regexNombreApellido.IsMatch(ApellidoTextBox.Text))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_Apellido_Invalido");
-                ApellidoTextBox.Focus();
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(TelefonoTextBox.Text) || !regexTelefono.IsMatch(TelefonoTextBox.Text))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_Telefono_Invalido");
-                TelefonoTextBox.Focus();
-                return false;
-            }
-
-            return true;
-        }
         private void CargarClientes()
         {
             try
@@ -144,18 +123,38 @@ namespace GUI_234TL
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error_CargarClientes", ex);
+                Utilitarios_234TL.MensajeError("ErrorCargarClientes", ex);
             }
         }
-        private void ConfigurarColumnas()
+        private void ConfigurarColumnas(FormRegistroCliente_234TL textos)
         {
             dataGridView1.AutoGenerateColumns = false;
             dataGridView1.Columns.Clear();
 
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "DNI", DataPropertyName = "Dni" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nombre", DataPropertyName = "Nombre" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Apellido", DataPropertyName = "Apellido" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Teléfono", DataPropertyName = "Telefono" });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "DNI",
+                DataPropertyName = "Dni",
+                HeaderText = textos.Columna_DNI
+            });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Nombre",
+                DataPropertyName = "Nombre",
+                HeaderText = textos.Columna_Nombre
+            });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Apellido",
+                DataPropertyName = "Apellido",
+                HeaderText = textos.Columna_Apellido
+            });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Telefono",
+                DataPropertyName = "Telefono",
+                HeaderText = textos.Columna_Telefono
+            });
         }
 
 
@@ -163,7 +162,7 @@ namespace GUI_234TL
         {
             if (dataGridView1.SelectedRows.Count == 0)
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionarCliente");
+                Utilitarios_234TL.MensajeAdvertencia("AdvertenciaSeleccionarCliente");
                 return;
             }
 
@@ -171,15 +170,20 @@ namespace GUI_234TL
 
             if (!bll.EliminarCliente(cliente.Dni))
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_ClienteNoExiste");
+                Utilitarios_234TL.MensajeAdvertencia("AdvertenciaClienteNoExiste");
                 return;
             }
 
-            Utilitarios_234TL.MensajeExito("Exito_ClienteEliminado");
+            Utilitarios_234TL.MensajeExito("ExitoClienteEliminado");
             CargarClientes();
             LimpiarCampos();
             ClienteAgregadoOEliminado?.Invoke(this, EventArgs.Empty);
             this.Close();
+        }
+
+        private void FormRegistrarCliente_Load(object sender, EventArgs e)
+        {
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
     }
 }

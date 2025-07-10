@@ -1,10 +1,6 @@
 ﻿using DAL_234TL;
 using Servicios_234TL.Composite_234TL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Servicios_234TL.Exception_234TL;
 
 namespace BLL_234TL
 {
@@ -21,13 +17,13 @@ namespace BLL_234TL
         {
             if (string.IsNullOrWhiteSpace(permiso.Nombre))
             {
-                throw new ArgumentException("El nombre del permiso no puede estar vacío.");
+                throw new ValidacionesException_234TL("PermisoNombreVacio", nameof(permiso.Nombre));
             }
 
             var todosLosPermisos = this.GetAll();
             if (todosLosPermisos.Any(p => p.Nombre.Equals(permiso.Nombre, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new InvalidOperationException($"Ya existe un permiso con el nombre '{permiso.Nombre}'.");
+                throw new ValidacionesException_234TL("PermisoYaExiste", nameof(permiso.Nombre), permiso.Nombre);
             }
 
             base.Guardar(permiso);
@@ -37,20 +33,27 @@ namespace BLL_234TL
             var todosLosPermisos = this.GetAll();
             if (todosLosPermisos.Any(p => p.IdPermiso != permiso.IdPermiso && p.Nombre.Equals(permiso.Nombre, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new InvalidOperationException($"Ya existe otro permiso con el nombre '{permiso.Nombre}'.");
+                throw new ValidacionesException_234TL("PermisoYaExiste", nameof(permiso.Nombre), permiso.Nombre);
             }
 
             base.Update(permiso);
         }
         public void EliminarPermiso(Permiso_234TL permiso)
         {
-            if (permiso == null) throw new ArgumentNullException(nameof(permiso));
+            if (permiso == null)
+            {
+                throw new ValidacionesException_234TL("PermisoNulo", "General");
+            }
 
             if (_familiaDAL.PermisoEstaEnUso(permiso.IdPermiso))
-                throw new InvalidOperationException("El permiso no se puede eliminar, está en uso por una o más familias.");
+            {
+                throw new ValidacionesException_234TL("PermisoEnUsoPorFamilia", "General");
+            }
 
             if (_perfilDAL.PermisoEstaEnUso(permiso.IdPermiso))
-                throw new InvalidOperationException("El permiso no se puede eliminar, está en uso por uno o más perfiles.");
+            {
+                throw new ValidacionesException_234TL("PermisoEnUsoPorPerfil", "General");
+            }
 
             base.Eliminar(permiso);
         }

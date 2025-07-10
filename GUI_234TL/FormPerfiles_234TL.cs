@@ -1,11 +1,13 @@
 ﻿using BLL_234TL;
 using Servicios_234TL.Composite_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormPerfiles_234TL : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormPerfiles_234TL : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private PerfilBLL_234TL perfilBLL = new PerfilBLL_234TL();
         private FamiliaBLL_234TL familiaBLL = new FamiliaBLL_234TL();
@@ -28,17 +30,50 @@ namespace GUI_234TL
             Utilitarios_234TL.DesuscribirDeIdiomas(this);
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
             try
             {
-                this.Text = Traduccion["FormPerfiles_Title"];
+                var textos = Traduccion.Forms.Perfiles;
+
+                this.Text = textos.Title;
+
+                PermisosLabel.Text = textos.GroupBoxPermisos;
+                FamiliaLabel.Text = textos.GroupBoxFamilias;
+                ContenidoPerfiles.Text = textos.GroupBoxPerfiles;
+
+                NombreFamiliaLabel.Text = textos.LabelNombreFamilia;
+                CrearFamiliaButton.Text = textos.CrearFamiliaBotton;
+                SeleccionarFamiliaButton.Text = textos.SeleccionarFamiliaBotton;
+                DeseleccionarFamiliaButton.Text = textos.DeseleccionarFamiliaBotton;
+                AgregarAFamiliaPermisoButton.Text = textos.AgregarPermisoAFamiliaBotton;
+                AgregarAFamiliaFamiliaButton.Text = textos.AgregarFamiliaAFamiliaBotton;
+                EliminarDeFamiliaButton.Text = textos.EliminarDeFamiliaBotton;
+                EliminarFamiliaDefinitivoButton.Text = textos.EliminarFamiliaDefinitivoBotton;
+
+                NombrePerfilLabel.Text = textos.LabelNombrePerfil;
+                CrearPerfilButton.Text = textos.CrearPerfilBotton;
+                AgregarAPerfilPermisoButton.Text = textos.AgregarPermisoAPerfilBotton;
+                AgregarAPerfilFamiliaButton.Text = textos.AgregarFamiliaAPerfilBotton;
+                EliminarDePerfilButton.Text = textos.EliminarDePerfilBotton;
+                EliminarPerfilDefinitivoButton.Text = textos.EliminarPerfilDefinitivoBotton;
+
+                FamiliaSeleccionadaLabel.Text = textos.FamiliaSeleccionadaLabel;
+                PermisoSeleccionadoLabel.Text = textos.PermisoSeleccionadoLabel;
+                PerfilSeleccionadoLabel.Text = textos.PerfilSeleccionadoLabel;
             }
             catch (Exception ex)
             {
                 Utilitarios_234TL.MensajeError("ErrorEnUpdateIdioma", ex);
             }
         }
+        #endregion
+
+        /// <summary>
+        /// Tendria que cambiar el metodo de abajo. :D
+        /// </summary>
+
+
         private void AgregarAFamiliaPermisoButton_Click(object sender, EventArgs e)
         {
             try
@@ -50,7 +85,7 @@ namespace GUI_234TL
                 }
                 if (PermisosListbox.SelectedItems.Count == 0)
                 {
-                    Utilitarios_234TL.MensajeError("DebeSeleccionarAlMenosUnPermiso");
+                    Utilitarios_234TL.MensajeError("DebeSeleccionarUnPermiso");
                     return;
                 }
 
@@ -93,9 +128,9 @@ namespace GUI_234TL
                     Utilitarios_234TL.MensajeExito("PermisoAgregadoCorrectamente");
                 }
             }
-            catch (InvalidOperationException ex) 
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
@@ -127,6 +162,11 @@ namespace GUI_234TL
                 familiaBLL.Update(familia);
                 CargarFamilias();
                 CargarPerfiles();
+                Utilitarios_234TL.MensajeExito("ComponenteEliminadoExito");
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
@@ -142,27 +182,26 @@ namespace GUI_234TL
 
                 if (familiaAEliminar == null || FamiliasTreeView.SelectedNode.Parent != null)
                 {
-                    Utilitarios_234TL.MensajeError("Solo se pueden eliminar familias raíz desde esta opción.");
+                    Utilitarios_234TL.MensajeError("SoloEliminarFamiliasRaiz");
                     return;
                 }
 
-                if (Utilitarios_234TL.MensajeConfirmacion("Confirmacion_EliminarFamilia") == DialogResult.Yes)
+                if (Utilitarios_234TL.MensajeConfirmacion(this,"ConfirmacionEliminarFamilia") == DialogResult.Yes)
                 {
-                    return;
+                    familiaBLL.EliminarFamilia(familiaAEliminar);
+                    CargarFamilias();
+                    CargarPerfiles();
+                    Utilitarios_234TL.MensajeExito("FamiliaEliminadaExito");
                 }
 
-                familiaBLL.EliminarFamilia(familiaAEliminar);
-
-                FamiliasTreeView.Nodes.Remove(FamiliasTreeView.SelectedNode);
-                Utilitarios_234TL.MensajeExito("Familia eliminada.");
             }
-            catch (InvalidOperationException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Ocurrió un error inesperado al eliminar la familia.", ex);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoEliminarFamilia", ex);
             }
         }
 
@@ -179,19 +218,16 @@ namespace GUI_234TL
                 FamiliasTreeView.Nodes.Add(nuevoNodo);
 
                 NombreFamiliaTextbox.Clear();
-                Utilitarios_234TL.MensajeExito("Familia creada correctamente.");
+                Utilitarios_234TL.MensajeExito("FamiliaCreadaExito");
             }
-            catch (ArgumentException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+                if (ex.Nombre == "nombre") NombreFamiliaTextbox.Focus();
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error inesperado al crear la familia.", ex);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoCrearFamilia", ex);
             }
         }
         private void AgregarAFamiliaFamiliaButton_Click(object sender, EventArgs e)
@@ -203,25 +239,25 @@ namespace GUI_234TL
 
                 if (familiaPadre == null || familiaHija == null)
                 {
-                    Utilitarios_234TL.MensajeError("Debe seleccionar una familia padre y una familia hija.");
+                    Utilitarios_234TL.MensajeError("SeleccionarFamiliaPadreHija");
                     return;
                 }
                 familiaBLL.AgregarHijo(familiaPadre, familiaHija);
 
-                Utilitarios_234TL.MensajeExito("Familia agregada correctamente.");
+                Utilitarios_234TL.MensajeExito("FamiliaAgregadaExito");
                 CargarFamilias();
                 CargarPerfiles();
 
                 temporal = null;
                 FamiliaSeleccionadaLabel.Text = "Familia seleccionada: (ninguna)";
             }
-            catch (InvalidOperationException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Ocurrió un error inesperado al agregar la familia.", ex);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoAgregarFamilia", ex);
             }
         }
         private void SeleccionarFamiliaButton_Click(object sender, EventArgs e)
@@ -253,7 +289,7 @@ namespace GUI_234TL
             }
         }
 
-        #endregion
+
 
         #region Perfiles
         private void AgregarAPerfilPermisoButton_Click(object sender, EventArgs e)
@@ -265,22 +301,22 @@ namespace GUI_234TL
 
                 if (perfilSeleccionado == null || permisoSeleccionado == null)
                 {
-                    Utilitarios_234TL.MensajeError("Debe seleccionar un perfil y un permiso.");
+                    Utilitarios_234TL.MensajeError("SeleccionarPerfilYPermiso");
                     return;
                 }
 
                 perfilBLL.AgregarComponenteAPerfil(perfilSeleccionado, permisoSeleccionado);
 
                 CargarPerfiles();
-                Utilitarios_234TL.MensajeExito("Permiso agregado al perfil.");
+                Utilitarios_234TL.MensajeExito("PermisoAgregadoAPerfilExito");
             }
-            catch (InvalidOperationException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error inesperado al agregar el permiso.", ex);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoAgregarPermiso", ex);
             }
         }
 
@@ -311,7 +347,11 @@ namespace GUI_234TL
                 perfilBLL.Update(perfil);
                 CargarFamilias();
                 CargarPerfiles();
-                Utilitarios_234TL.MensajeExito("Familia agregada al perfil correctamente.");
+                Utilitarios_234TL.MensajeExito("FamiliaAgregadaAPerfilExito");
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
@@ -333,11 +373,16 @@ namespace GUI_234TL
                     perfilBLL.Update(perfil);
                     CargarPerfiles();
                     CargarFamilias();
+                    Utilitarios_234TL.MensajeExito("ComponenteEliminadoDePerfilExito");
                 }
                 else
                 {
                     Utilitarios_234TL.MensajeError("ErrorAlEliminarComponente");
                 }
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
@@ -351,26 +396,24 @@ namespace GUI_234TL
             {
                 if (PerfilesTreeView.SelectedNode?.Tag is not Perfil_234TL perfil)
                 {
-                    Utilitarios_234TL.MensajeError("SeleccionInvalida");
+                    Utilitarios_234TL.MensajeError("DebeSeleccionarUnPerfil");
                     return;
                 }
 
-                if (perfil.ObtenerComponentes().Count > 0)
+                if (Utilitarios_234TL.MensajeConfirmacion(this,"ConfirmacionEliminarPerfil") == DialogResult.Yes)
                 {
-                    Utilitarios_234TL.MensajeError("PerfilNoVacioNoEliminable");
-                    return;
+                    perfilBLL.Eliminar(perfil);
+                    Utilitarios_234TL.MensajeExito("PerfilEliminadoExito");
+                    CargarPerfiles();
                 }
-
-                perfilBLL.Eliminar(perfil);
-                CargarPerfiles();
             }
-            catch (InvalidOperationException ex)
+            catch (ValidacionesException_234TL ex)
             {
-                Utilitarios_234TL.MensajeError(ex.Message);
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError($"ErrorAlEliminarPerfil: {ex.Message}");
+                Utilitarios_234TL.MensajeError("ErrorInesperadoEliminarPerfil", ex);
             }
         }
 
@@ -396,6 +439,11 @@ namespace GUI_234TL
                 TreeNode nodo = new TreeNode(nombre);
                 nodo.Tag = new Perfil_234TL(nombre);
                 PerfilesTreeView.Nodes.Add(nodo);
+                Utilitarios_234TL.MensajeExito("PerfilCreadoExito");
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {

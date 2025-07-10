@@ -1,12 +1,14 @@
 using BLL_234TL;
+using GUI_234TL.Negocio_234TL;
 using Servicios_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormPrincipal_234TL : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormPrincipal_234TL : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private readonly UsuarioBLL_234TL usuario = new();
         private Usuario_234TL UsuarioLogueado;
@@ -43,6 +45,10 @@ namespace GUI_234TL
             RecepcionButton.Visible = sesion.TienePermiso("ACCESO_RECEPCION");
             CrearOrdenButton.Visible = sesion.TienePermiso("ACCESO_CREAR_ORDEN");
             GeneralFacturaYComprobanteButton.Visible = sesion.TienePermiso("ACCESO_FACTURAR");
+            Pdfbutton.Visible = sesion.TienePermiso("ACCESO_DOCUMENTOS");
+
+            bool puedeAccederTecnicos = sesion.TienePermiso("ACCESO_TECNICOS");
+            MaestrosButton.Visible = puedeAccederTecnicos;
         }
 
 
@@ -111,17 +117,17 @@ namespace GUI_234TL
             switch (resultado)
             {
                 case Resultados_234TL.SesionCerrada:
-                    Utilitarios_234TL.MensajeInformacion("Mensaje_SesionCerrada");
+                    Utilitarios_234TL.MensajeInformacion("SesionCerradaConExito");
                     ActualizarUsuarioLogueado(null);
                     IdiomasManager_234TL.Instancia.NotificarActuales();
                     break;
 
                 case Resultados_234TL.NoHayLogueado:
-                    Utilitarios_234TL.MensajeAdvertencia("Mensaje_NoHayLogueado");
+                    Utilitarios_234TL.MensajeAdvertencia("NoHaySesionActiva");
                     break;
 
                 default:
-                    Utilitarios_234TL.MensajeError("Mensaje_ErrorCerrarSesion");
+                    Utilitarios_234TL.MensajeError("ErrorInesperadoCerrarSesion");
                     break;
             }
         }
@@ -220,6 +226,8 @@ namespace GUI_234TL
             GestionUsuarioButton.Visible = false;
             CrearOrdenButton.Visible = false;
             GeneralFacturaYComprobanteButton.Visible = false;
+            TecnicosButton.Visible = false;
+            Pdfbutton.Visible = false;
         }
 
         private void MostrarFormularioInterno(Form formHijo, Form formPadre)
@@ -247,41 +255,55 @@ namespace GUI_234TL
         {
             this.UsuarioLogueado = usuarioLogueado;
             AplicarPermisos();
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
 
         #endregion Funciones
 
         #region IObserver_234TL
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL traduccion)
         {
-            this.Text = Traduccion["FormPrincipal_234TL_Title"];
-            SesionButton.Text = Traduccion["FormPrincipal_234TL_SesionButton"];
-            IniciarSesionButton.Text = Traduccion["FormPrincipal_234TL_IniciarSesionButton"];
-            CerrarSesionButton.Text = Traduccion["FormPrincipal_234TL_CerrarSesionButton"];
-            CambiarContraseñabutton.Text = Traduccion["FormPrincipal_234TL_CambiarContraseñaButton"];
-            GestionUsuarioButton.Text = Traduccion["FormPrincipal_234TL_GestionUsuariosButton"];
-            GestionAdminbutton.Text = Traduccion["FormPrincipal_234TL_GestionAdminButton"];
-            toolStripStatusLabel1.Text = Traduccion["FormPrincipal_234TL_ToolStripStatusLabel"];
-            PerfilesButton.Text = Traduccion["FormPrincipal_234TL_PerfilesButton"];
-            BackupButton.Text = Traduccion["FormPrincipal_234TL_BackupButton"];
-            RestoreButton.Text = Traduccion["FormPrincipal_234TL_RestoreButton"];
-            BitacoraEButton.Text = Traduccion["FormPrincipal_234TL_BitacoraEButton"];
-            DigVerButton.Text = Traduccion["FormPrincipal_234TL_DigVerButton"];
-            CambiarIdiomaButton.Text = Traduccion["FormPrincipal_234TL_CambiarIdiomaButton"];
-            CrearOrdenButton.Text = Traduccion["FormPrincipal_234TL_CrearOrdenButton"];
-            GeneralFacturaYComprobanteButton.Text = Traduccion["FormPrincipal_234TL_GeneralFacturaYComprobanteButton"];
-            RecepcionButton.Text = Traduccion["FormPrincipal_234TL_RecepcionButton"];
-            if (UsuarioLogueado != null)
+            try
             {
-                toolStripStatusLabel1.Text = string.Format(Traduccion.GetValueOrDefault("FormPrincipal_234TL_ToolStripBienvenida", "¡Bienvenido/a, {0}! ¡Que tengas una excelente jornada!"), UsuarioLogueado.Nombre);
+                var textos = traduccion.Forms.Principal;
+
+                this.Text = textos.Title;
+
+                SesionButton.Text = textos.SesionButton;
+                IniciarSesionButton.Text = textos.IniciarSesionButton;
+                CerrarSesionButton.Text = textos.CerrarSesionButton;
+                CambiarContraseñabutton.Text = textos.CambiarContraseñaButton;
+                CambiarIdiomaButton.Text = textos.CambiarIdiomaButton;
+
+                GestionAdminbutton.Text = textos.GestionAdminButton;
+                GestionUsuarioButton.Text = textos.GestionUsuariosButton;
+                PerfilesButton.Text = textos.PerfilesButton;
+                BackupButton.Text = textos.BackupButton;
+                RestoreButton.Text = textos.RestoreButton;
+                BitacoraEButton.Text = textos.BitacoraEButton;
+                DigVerButton.Text = textos.DigVerButton;
+                MaestrosButton.Text = textos.MaestrosButton;
+                TecnicosButton.Text = textos.TecnicosButton;
+                Pdfbutton.Text = textos.PdfButton;
+                RecepcionButton.Text = textos.RecepcionButton;
+                CrearOrdenButton.Text = textos.CrearOrdenButton;
+                GeneralFacturaYComprobanteButton.Text = textos.GeneralFacturaYComprobanteButton;
+
+                if (UsuarioLogueado != null)
+                {
+                    toolStripStatusLabel1.Text = string.Format(textos.ToolStripBienvenida, UsuarioLogueado.Nombre);
+                }
+                else
+                {
+                    toolStripStatusLabel1.Text = textos.ToolStripSinUsuario;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                toolStripStatusLabel1.Text = Traduccion.GetValueOrDefault("FormPrincipal_234TL_ToolStripSinUsuario", "Usuario: No hay usuario logueado");
+                MessageBox.Show("Ocurrió un error al aplicar las traducciones al formulario principal.");
             }
         }
-
         #endregion IObserver_234TL
 
 
@@ -315,6 +337,32 @@ namespace GUI_234TL
             bool activado = CrearOrdenButton.Visible;
             CrearOrdenButton.Visible = !activado;
             GeneralFacturaYComprobanteButton.Visible = !activado;
+        }
+
+        private void MaestrosButton_Click(object sender, EventArgs e)
+        {
+            bool tienePermiso = SingletonT_234TL<Sesion_234TL>.GetInstance().TienePermiso("ACCESO_TECNICOS");
+
+            if (tienePermiso)
+            {
+                TecnicosButton.Visible = !TecnicosButton.Visible;
+            }
+        }
+
+        private void TecnicosButton_Click(object sender, EventArgs e)
+        {
+            Negocio_234TL.FormTecnicos_234TL FormTecnicos = new();
+            FormTecnicos.Owner = this;
+            FormTecnicos.StartPosition = FormStartPosition.CenterParent;
+            FormTecnicos.ShowDialog(this);
+        }
+
+        private void Pdfbutton_Click(object sender, EventArgs e)
+        {
+            Negocio_234TL.FormPdf_234TL formPdf = new();
+            formPdf.Owner = this;
+            formPdf.StartPosition = FormStartPosition.CenterParent;
+            formPdf.ShowDialog(this);
         }
     }
 }

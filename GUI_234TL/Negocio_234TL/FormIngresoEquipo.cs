@@ -1,13 +1,15 @@
 ﻿using BE_234TL;
 using BLL_234TL;
 using Servicios_234TL.Enum_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using System.Text.RegularExpressions;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormIngresoEquipo : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormIngresoEquipo : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private readonly EquipoBLL_234TL bll = new EquipoBLL_234TL();
         public event EventHandler EquipoAgregadoOEliminado;
@@ -16,50 +18,40 @@ namespace GUI_234TL
         {
             InitializeComponent();
             Utilitarios_234TL.SuscribirAIdiomas(this);
-            ConfigurarColumnasDataGridView();
             CargarEquipos();
-            ConfigurarCombobox();
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
             try
             {
-                this.Text = Traduccion["FormIngresoEquipo_Titulo"];
-                NumeroSerieLabel.Text = Traduccion["FormIngresoEquipo_NumeroSerieLabel"];
-                MarcaLabel.Text = Traduccion["FormIngresoEquipo_MarcaLabel"];
-                ModeloLabel.Text = Traduccion["FormIngresoEquipo_ModeloLabel"];
-                EstadoVisualLabel.Text = Traduccion["FormIngresoEquipo_EstadoLabel"];
-                FallaLabel.Text = Traduccion["FormIngresoEquipo_FallaLabel"];
-                DesarmadoLabel.Text = Traduccion["FormIngresoEquipo_DesarmadoLabel"];
-                DañoVisualLabel.Text = Traduccion["FormIngresoEquipo_DañoVisibleLabel"];
-                IngresarEquipoButton.Text = Traduccion["FormIngresoEquipo_IngresarButton"];
-                EliminarEquipo.Text = Traduccion["FormIngresoEquipo_EliminarButton"];
+                var textos = Traduccion.Forms.IngresoEquipo;
+                var textosEnum = Traduccion.Enums;
+                this.Text = textos.Title;
 
-                if (dataGridView1.Columns.Count >= 5)
-                {
-                    dataGridView1.Columns[0].HeaderText = Traduccion["ColumnaNumeroSerie"];
-                    dataGridView1.Columns[1].HeaderText = Traduccion["ColumnaMarca"];
-                    dataGridView1.Columns[2].HeaderText = Traduccion["ColumnaModelo"];
-                    dataGridView1.Columns[3].HeaderText = Traduccion["ColumnaEstado"];
-                    dataGridView1.Columns[4].HeaderText = Traduccion["ColumnaFalla"];
-                }
+                NumeroSerieLabel.Text = textos.Label_NumeroSerie;
+                MarcaLabel.Text = textos.Label_Marca;
+                ModeloLabel.Text = textos.Label_Modelo;
+                EstadoVisualLabel.Text = textos.Label_Estado;
+                FallaLabel.Text = textos.Label_Falla;
+                DesarmadoLabel.Text = textos.Label_Desarmado;
+                DañoVisualLabel.Text = textos.Label_DañoVisible;
+
+                IngresarEquipoButton.Text = textos.IngresarBotton;
+                EliminarEquipo.Text = textos.EliminarBotton;
+                Utilitarios_234TL.PoblarComboBox<MarcaEquipos_234TL>(MarcaComboBox, textosEnum.EstadoEquipo);
+                Utilitarios_234TL.PoblarComboBox<EstadoEquipo_234TL>(EstadoComboBox, textosEnum.EstadoEquipo);
+                Utilitarios_234TL.PoblarComboBox<OpcionBool_234TL>(DañoVisibleComboBox, textosEnum.OpcionBool);
+                Utilitarios_234TL.PoblarComboBox<OpcionBool_234TL>(DesarmadoComboBox, textosEnum.OpcionBool);
+                ConfigurarColumnasDataGridView(textos);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error en traducción: {ex.Message}");
+                Utilitarios_234TL.MensajeError("ErrorTraduccion", ex);
             }
         }
 
-        private void ConfigurarCombobox()
-        {
-            MarcaComboBox.DataSource = Enum.GetValues(typeof(MarcaEquipos_234TL));
-            EstadoComboBox.DataSource = Enum.GetValues(typeof(EstadoEquipo_234TL));
-            DañoVisibleComboBox.DataSource = Enum.GetValues(typeof(OpcionBool_234TL));
-            DesarmadoComboBox.DataSource = Enum.GetValues(typeof(OpcionBool_234TL));
-            DañoVisibleComboBox.SelectedIndex = 0; 
-            DesarmadoComboBox.SelectedIndex = 0;
-        }
 
         private void FormIngresoEquipo_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -72,74 +64,79 @@ namespace GUI_234TL
             {
                 if (string.IsNullOrWhiteSpace(NumeroSerieTipoTextBox.Text))
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_NumeroSerieObligatorio");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaNumeroSerieObligatorio");
                     NumeroSerieTipoTextBox.Focus();
                     return;
                 }
                 if (!Regex.IsMatch(NumeroSerieTipoTextBox.Text, @"^\d{5,9}$"))
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_NumeroSerieFormatoInvalido"); 
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaNumeroSerieFormatoInvalido");
                     NumeroSerieTipoTextBox.Focus();
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(ModeloTextBox.Text))
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_ModeloObligatorio");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaModeloObligatorio");
                     ModeloTextBox.Focus();
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(FallaTextBox.Text))
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_FallaObligatoria");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaFallaObligatoria");
                     FallaTextBox.Focus();
                     return;
                 }
                 if (MarcaComboBox.SelectedIndex < 0)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_MarcaNoSeleccionada");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaMarcaNoSeleccionada");
                     MarcaComboBox.Focus();
                     return;
                 }
                 if (EstadoComboBox.SelectedIndex < 0)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_EstadoNoSeleccionado");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaEstadoNoSeleccionado");
                     EstadoComboBox.Focus();
                     return;
                 }
                 if (DañoVisibleComboBox.SelectedIndex < 0)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_DañoVisibleNoSeleccionado");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaDañoVisibleNoSeleccionado");
                     DañoVisibleComboBox.Focus();
                     return;
                 }
                 if (DesarmadoComboBox.SelectedIndex < 0)
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_DesarmadoNoSeleccionado");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaDesarmadoNoSeleccionado");
                     DesarmadoComboBox.Focus();
                     return;
                 }
 
                 if (bll.ExisteEquipo(NumeroSerieTipoTextBox.Text))
                 {
-                    Utilitarios_234TL.MensajeAdvertencia("Advertencia_NumeroSerieDuplicado");
+                    Utilitarios_234TL.MensajeAdvertencia("AdvertenciaNumeroSerieDuplicado");
                     return;
                 }
-                bool desarmado = (OpcionBool_234TL)DesarmadoComboBox.SelectedItem == OpcionBool_234TL.Si;
-                bool dañoVisible = (OpcionBool_234TL)DañoVisibleComboBox.SelectedItem == OpcionBool_234TL.Si;
+                var marca = ((KeyValuePair<MarcaEquipos_234TL, string>)MarcaComboBox.SelectedItem).Key;
+                var estado = ((KeyValuePair<EstadoEquipo_234TL, string>)EstadoComboBox.SelectedItem).Key;
+                bool desarmado = ((KeyValuePair<OpcionBool_234TL, string>)DesarmadoComboBox.SelectedItem).Key == OpcionBool_234TL.Si;
+                bool dañoVisible = ((KeyValuePair<OpcionBool_234TL, string>)DañoVisibleComboBox.SelectedItem).Key == OpcionBool_234TL.Si;
 
-                bll.IngresarEquipo(numeroSerie: NumeroSerieTipoTextBox.Text,modelo: ModeloTextBox.Text,marca: MarcaComboBox.SelectedItem.ToString(),estado: EstadoComboBox.SelectedItem.ToString(),falla: FallaTextBox.Text,desarmado: (OpcionBool_234TL)DesarmadoComboBox.SelectedItem == OpcionBool_234TL.Si,dañoVisible: (OpcionBool_234TL)DañoVisibleComboBox.SelectedItem == OpcionBool_234TL.Si);
+                bll.IngresarEquipo(numeroSerie: NumeroSerieTipoTextBox.Text, modelo: ModeloTextBox.Text, marca: marca.ToString(), estado: estado.ToString(), falla: FallaTextBox.Text, desarmado: desarmado, dañoVisible: dañoVisible);
 
                 CargarEquipos();
                 LimpiarFormulario();
 
-
-                Utilitarios_234TL.MensajeExito("Exito_EquipoIngresado");
+                Utilitarios_234TL.MensajeExito("ExitoEquipoIngresado");
                 EquipoAgregadoOEliminado?.Invoke(this, EventArgs.Empty);
                 this.Close();
             }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+            }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error_IngresarEquipo", ex);
+                Utilitarios_234TL.MensajeError("ErrorIngresarEquipo", ex);
             }
         }
 
@@ -147,22 +144,30 @@ namespace GUI_234TL
         {
             if (dataGridView1.SelectedRows.Count == 0)
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionarEquipo");
+                Utilitarios_234TL.MensajeAdvertencia("AdvertenciaSeleccionarEquipo");
                 return;
             }
 
             try
             {
                 var equipo = (Equipo_234TL)dataGridView1.SelectedRows[0].DataBoundItem;
-                bll.Eliminar(equipo);
-                CargarEquipos();
-                Utilitarios_234TL.MensajeExito("Exito_EquipoEliminado");
-                EquipoAgregadoOEliminado?.Invoke(this, EventArgs.Empty);
 
+                if (Utilitarios_234TL.MensajeConfirmacion(this,"ConfirmacionEliminarEquipo", equipo.NumeroSerie) == DialogResult.Yes)
+                {
+                    bll.Eliminar(equipo); 
+                    CargarEquipos();
+                    Utilitarios_234TL.MensajeExito("ExitoEquipoEliminado");
+                    EquipoAgregadoOEliminado?.Invoke(this, EventArgs.Empty);
+                }
+
+            }
+            catch (ValidacionesException_234TL ex) 
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error_EliminarEquipo", ex);
+                Utilitarios_234TL.MensajeError("ErrorEliminarEquipo", ex);
             }
         }
 
@@ -178,18 +183,65 @@ namespace GUI_234TL
         }
 
 
-        private void ConfigurarColumnasDataGridView()
+        private void ConfigurarColumnasDataGridView(FormIngresoEquipo_234TL textos)
         {
             dataGridView1.Columns.Clear();
+            dataGridView1.AutoGenerateColumns = false;
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "NumeroSerie", 
+                DataPropertyName = "NumeroSerie",
+                HeaderText = textos.Columna_NumeroSerie 
+            });
 
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NumeroSerie", HeaderText = "Número de Serie" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Marca", HeaderText = "Marca" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Modelo", HeaderText = "Modelo" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Estado", HeaderText = "Estado" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "FallaReportada", HeaderText = "Falla Reportada" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "HoraIngreso", HeaderText = "Hora de Ingreso" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Desarmado", HeaderText = "Desarmado" });
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "DañoVisible", HeaderText = "Daño Visible" });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Marca",
+                DataPropertyName = "Marca",
+                HeaderText = textos.Columna_Marca
+            });
+
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Modelo",
+                DataPropertyName = "Modelo",
+                HeaderText = textos.Columna_Modelo
+            });
+
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Estado",
+                DataPropertyName = "Estado",
+                HeaderText = textos.Columna_Estado
+            });
+
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "FallaReportada",
+                DataPropertyName = "FallaReportada",
+                HeaderText = textos.Columna_Falla
+            });
+
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "HoraIngreso",
+                DataPropertyName = "HoraIngreso",
+                HeaderText = textos.Columna_FechaIngreso
+            });
+
+            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                Name = "Desarmado",
+                DataPropertyName = "Desarmado",
+                HeaderText = textos.Columna_Desarmado
+            });
+
+            dataGridView1.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                Name = "DañoVisible",
+                DataPropertyName = "DañoVisible",
+                HeaderText = textos.Columna_DañoVisible
+            });
         }
 
         private void CargarEquipos()

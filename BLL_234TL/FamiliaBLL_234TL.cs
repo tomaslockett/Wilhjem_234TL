@@ -1,5 +1,6 @@
 ﻿using DAL_234TL;
 using Servicios_234TL.Composite_234TL;
+using Servicios_234TL.Exception_234TL;
 
 namespace BLL_234TL
 {
@@ -17,12 +18,12 @@ namespace BLL_234TL
         {
             if (string.IsNullOrWhiteSpace(nombre))
             {
-                throw new ArgumentException("El nombre de la familia no puede estar vacío.");
+                throw new ValidacionesException_234TL("FamiliaNombreVacio", nameof(nombre));
             }
 
             if (_FamiliaDAL.NombreExiste(nombre))
             {
-                throw new InvalidOperationException($"Ya existe una familia con el nombre '{nombre}'.");
+                throw new ValidacionesException_234TL("FamiliaYaExiste", nameof(nombre), nombre);
             }
 
             var nuevaFamilia = new Familia_234TL(nombre);
@@ -31,22 +32,49 @@ namespace BLL_234TL
 
             return nuevaFamilia;
         }
+        private List<Familia_234TL> ObtenerSubFamiliasRecursivo(Familia_234TL familia)
+        {
+            var listaFamilias = new List<Familia_234TL>();
+            foreach (var hijo in familia.ObtenerHijos().OfType<Familia_234TL>())
+            {
+                if (!listaFamilias.Any(f => f.IdFamilia == hijo.IdFamilia))
+                {
+                    listaFamilias.Add(hijo);
+                }
+
+                var familiasNietas = ObtenerSubFamiliasRecursivo(hijo);
+                foreach (var nieta in familiasNietas)
+                {
+                    if (!listaFamilias.Any(f => f.IdFamilia == nieta.IdFamilia))
+                    {
+                        listaFamilias.Add(nieta);
+                    }
+                }
+            }
+            return listaFamilias;
+        }
 
         public void EliminarFamilia(Familia_234TL familia)
         {
+           
             if (familia == null)
             {
-                throw new ArgumentNullException(nameof(familia), "La familia a eliminar no puede ser nula.");
+                throw new ValidacionesException_234TL("FamiliaNula", "General");
             }
 
             if (familia.ObtenerHijos().Any())
             {
-                throw new InvalidOperationException("La familia no se puede eliminar porque no está vacía. Primero debe quitar todos sus componentes.");
+                throw new ValidacionesException_234TL("FamiliaNoVacia", "General");
+            }
+
+            if (_FamiliaDAL.FamiliaEstaAsignadaComoHijo(familia.IdFamilia))
+            {
+                throw new ValidacionesException_234TL("FamiliaAsignadaComoHija", "General");
             }
 
             if (_perfilDAL.FamiliaEstaEnUso(familia.IdFamilia))
             {
-                throw new InvalidOperationException("La familia no se puede eliminar porque está asignada a uno o más perfiles.");
+                throw new ValidacionesException_234TL("FamiliaEnUsoPorPerfil", "General");
             }
 
             base.Eliminar(familia);
@@ -59,32 +87,43 @@ namespace BLL_234TL
             {
                 if (padre.IdFamilia == familiaHija.IdFamilia)
                 {
-                    throw new InvalidOperationException("Una familia no puede contenerse a sí misma.");
+                    throw new ValidacionesException_234TL("FamiliaContenidaASiMisma", "General");
                 }
 
                 if (EsCircular(padre, familiaHija))
                 {
-                    throw new InvalidOperationException("Error de jerarquía circular: La familia que intenta agregar ya contiene a la familia padre.");
+                    throw new ValidacionesException_234TL("ErrorJerarquiaCircular", "General");
                 }
+
+                if (JerarquiaYaContieneFamilia(padre, familiaHija.IdFamilia))
+                {
+                    throw new ValidacionesException_234TL("FamiliaYaExisteEnJerarquia", "General", familiaHija.Nombre, padre.Nombre);
+                }
+
+                ValidarFamiliaNoRedundante(padre, familiaHija);
+            }
+            else if (hijo is Permiso_234TL permisoHijo)
+            {
+                ValidarPermisoNoRedundante(padre, permisoHijo);
             }
 
             bool yaExiste;
             if (hijo is Familia_234TL f)
             {
-                yaExiste = padre.ObtenerHijos().Any(h => h is Familia_234TL fh && fh.IdFamilia == f.IdFamilia);
+                yaExiste = padre.ObtenerHijos().Any(h => h is Familia_234TL familiahija && familiahija.IdFamilia == f.IdFamilia);
             }
             else if (hijo is Permiso_234TL p)
             {
-                yaExiste = padre.ObtenerHijos().Any(h => h is Permiso_234TL ph && ph.IdPermiso == p.IdPermiso);
+                yaExiste = padre.ObtenerHijos().Any(h => h is Permiso_234TL permisohija && permisohija.IdPermiso == p.IdPermiso);
             }
             else
             {
-                throw new ArgumentException("Tipo de componente no válido.");
+                throw new ValidacionesException_234TL("TipoComponenteInvalido", "General");
             }
 
             if (yaExiste)
             {
-                throw new InvalidOperationException($"La familia '{padre.Nombre}' ya contiene el componente '{hijo.Nombre}'.");
+                throw new ValidacionesException_234TL("FamiliaYaContieneComponente", "General", padre.Nombre, hijo.Nombre);
             }
 
             padre.AgregarHijo(hijo);
@@ -93,11 +132,25 @@ namespace BLL_234TL
 
         private bool EsCircular(Familia_234TL padre, Familia_234TL posibleHijo)
         {
-            if (posibleHijo.ObtenerHijos().Any(h => h.Id == padre.Id))
+            if (posibleHijo.IdFamilia == padre.IdFamilia)
             {
                 return true;
             }
-            return posibleHijo.ObtenerHijos().OfType<Familia_234TL>().Any(subFamilia => EsCircular(padre, subFamilia));
+
+            foreach (var hijo in posibleHijo.ObtenerHijos().OfType<Familia_234TL>())
+            {
+                if (hijo.IdFamilia == padre.IdFamilia)
+                {
+                    return true;
+                }
+
+                if (EsCircular(padre, hijo))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void QuitarHijo(Familia_234TL padre, IComponente_234TL hijo)
@@ -105,33 +158,65 @@ namespace BLL_234TL
             padre.EliminarHijo(hijo);
             this.Update(padre);
         }
+        #region Permiso
         public void ValidarPermisoNoRedundante(Familia_234TL familiaDestino, Permiso_234TL permisoAAgregar)
         {
-            var todasLasFamiliasRaiz = this.GetAll(); 
+            if (PermisoExisteEnJerarquia(familiaDestino, permisoAAgregar.IdPermiso))
+            {
+                throw new ValidacionesException_234TL("PermisoDuplicado", "General", permisoAAgregar.Nombre);
+            }
+
+            var todasLasFamiliasRaiz = this.GetAll();
 
             foreach (var familiaRaiz in todasLasFamiliasRaiz)
             {
-                if (BuscarRedundanciaEnAncestro(familiaRaiz, familiaDestino, permisoAAgregar.IdPermiso))
+                if (AncestroYaContienePermiso(familiaRaiz, familiaDestino, permisoAAgregar.IdPermiso))
                 {
-                    throw new InvalidOperationException($"El permiso '{permisoAAgregar.Nombre}' ya es heredado de una familia de nivel superior.");
+                    throw new ValidacionesException_234TL("PermisoDuplicadoEnHijo", "General", permisoAAgregar.Nombre);
                 }
             }
         }
-
-        private bool BuscarRedundanciaEnAncestro(Familia_234TL ancestroActual, Familia_234TL familiaDestino, int idPermisoBuscado)
+        private bool AncestroYaContienePermiso(Familia_234TL HijoActual, Familia_234TL familiaDestino, int idPermisoBuscado)
         {
-            bool contieneDestino = ancestroActual.ObtenerHijos().OfType<Familia_234TL>().Any(hijo => FamiliaExisteEnJerarquia(hijo, familiaDestino.IdFamilia));
+            bool contieneDestino = false;
+
+            foreach (var hijo in HijoActual.ObtenerHijos())
+            {
+                if (hijo is Familia_234TL familiaHijo)
+                {
+                    if (FamiliaExisteEnJerarquia(familiaHijo, familiaDestino.IdFamilia))
+                    {
+                        contieneDestino = true;
+                        break;
+                    }
+                }
+            }
 
             if (contieneDestino)
             {
-                if (PermisoExisteEnJerarquia(ancestroActual, idPermisoBuscado))
+                if (PermisoExisteEnJerarquia(HijoActual, idPermisoBuscado))
                 {
-                    return true; 
+                    return true;
                 }
             }
-            foreach (var subFamilia in ancestroActual.ObtenerHijos().OfType<Familia_234TL>())
+            foreach (var subFamilia in HijoActual.ObtenerHijos().OfType<Familia_234TL>())
             {
-                if (BuscarRedundanciaEnAncestro(subFamilia, familiaDestino, idPermisoBuscado))
+                if (AncestroYaContienePermiso(subFamilia, familiaDestino, idPermisoBuscado))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        private bool PermisoExisteEnJerarquia(Familia_234TL familia, int idPermiso)
+        {
+            foreach (var hijo in familia.ObtenerHijos())
+            {
+                if (hijo is Permiso_234TL permiso && permiso.IdPermiso == idPermiso)
+                {
+                    return true;
+                }
+                if (hijo is Familia_234TL subfamilia && PermisoExisteEnJerarquia(subfamilia, idPermiso))
                 {
                     return true;
                 }
@@ -139,14 +224,52 @@ namespace BLL_234TL
             return false;
         }
 
-        private bool PermisoExisteEnJerarquia(Familia_234TL familia, int idPermiso)
+        #endregion
+
+        #region Familia
+
+        public void ValidarFamiliaNoRedundante(Familia_234TL padre, Familia_234TL familiaHija)
         {
-            foreach (var hijo in familia.ObtenerHijos())
+            var permisosDeLaHija = ObtenerPermisosDeJerarquia(familiaHija);
+            foreach (var permiso in permisosDeLaHija)
             {
-                if (hijo is Permiso_234TL permiso && permiso.IdPermiso == idPermiso) return true;
-                if (hijo is Familia_234TL subfamilia && PermisoExisteEnJerarquia(subfamilia, idPermiso)) return true;
+                if (PermisoExisteEnJerarquia(padre, permiso.IdPermiso))
+                {
+                    throw new ValidacionesException_234TL("PermisoRedundanteEnFamilia", "General", permiso.Nombre, familiaHija.Nombre);
+                }
             }
-            return false;
+
+            var subFamiliasDeLaHija = ObtenerSubFamiliasRecursivo(familiaHija);
+
+            subFamiliasDeLaHija.Add(familiaHija);
+
+            foreach (var subFamilia in subFamiliasDeLaHija)
+            {
+                if (JerarquiaYaContieneFamilia(padre, subFamilia.IdFamilia))
+                {
+                    throw new ValidacionesException_234TL("FamiliaRedundanteEnJerarquia", "General", subFamilia.Nombre, padre.Nombre);
+                }
+            }
+        }
+
+        private bool JerarquiaYaContieneFamilia(Familia_234TL familiaActual, int idFamiliaBuscada)
+        {
+            foreach (var hijo in familiaActual.ObtenerHijos())
+            {
+                if (hijo is Familia_234TL familiaHijo)
+                {
+                    if (familiaHijo.IdFamilia == idFamiliaBuscada)
+                    {
+                        return true; 
+                    }
+                    if (JerarquiaYaContieneFamilia(familiaHijo, idFamiliaBuscada))
+                    {
+                        return true; 
+                    }
+                }
+            }
+
+            return false; 
         }
 
         private bool FamiliaExisteEnJerarquia(Familia_234TL familia, int idFamiliaBuscada)
@@ -154,10 +277,42 @@ namespace BLL_234TL
             if (familia.IdFamilia == idFamiliaBuscada) return true;
             foreach (var hijo in familia.ObtenerHijos().OfType<Familia_234TL>())
             {
-                if (FamiliaExisteEnJerarquia(hijo, idFamiliaBuscada)) return true;
+                if (FamiliaExisteEnJerarquia(hijo, idFamiliaBuscada))
+                {
+                    return true;
+                }
             }
             return false;
         }
 
+        #endregion
+
+
+        private List<Permiso_234TL> ObtenerPermisosDeJerarquia(Familia_234TL familia)
+        {
+            var permisosUnicos = new List<Permiso_234TL>();
+
+            foreach (var permiso in familia.ObtenerHijos().OfType<Permiso_234TL>())
+            {
+                if (!permisosUnicos.Any(p => p.IdPermiso == permiso.IdPermiso))
+                {
+                    permisosUnicos.Add(permiso);
+                }
+            }
+
+            foreach (var subFamilia in familia.ObtenerHijos().OfType<Familia_234TL>())
+            {
+                var permisosHijos = ObtenerPermisosDeJerarquia(subFamilia);
+                foreach (var permisoHijo in permisosHijos)
+                {
+                    if (!permisosUnicos.Any(p => p.IdPermiso == permisoHijo.IdPermiso))
+                    {
+                        permisosUnicos.Add(permisoHijo);
+                    }
+                }
+            }
+
+            return permisosUnicos;
+        }
     }
 }

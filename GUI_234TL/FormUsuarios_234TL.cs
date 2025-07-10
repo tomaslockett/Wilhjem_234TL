@@ -3,12 +3,13 @@ using Servicios_234TL;
 using Servicios_234TL.Composite_234TL;
 using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using System.Text.RegularExpressions;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormUsuarios_234TL : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormUsuarios_234TL : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private const string RolAdmin = "SuperAdmin";
         private UsuarioBLL_234TL bll = new BLL_234TL.UsuarioBLL_234TL();
@@ -108,31 +109,31 @@ namespace GUI_234TL
 
             if (dataGridViewUsuarios.CurrentRow == null)
             {
-                Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                Utilitarios_234TL.MensajeError("SeleccioneUsuario");
                 return;
             }
             var usuario = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
 
             if (usuario.Perfil?.Nombre == RolAdmin)
             {
-                Utilitarios_234TL.MensajeError("Mensaje_NoModificarSuperAdmin");
+                Utilitarios_234TL.MensajeError("NoModificarSuperAdmin");
                 return;
             }
 
             if (usuario.Activo)
             {
-                if (Utilitarios_234TL.MensajeConfirmacion("Mensaje_ConfirmarDesactivacion", usuario.Login) == DialogResult.Yes)
+                if (Utilitarios_234TL.MensajeConfirmacion(this,"DesactivarUsuario", usuario.Login) == DialogResult.Yes)
                 {
                     bll.DesactivarUsuario(usuario);
-                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesactivado");
+                    Utilitarios_234TL.MensajeExito("UsuarioDesactivado");
                 }
             }
             else
             {
-                if (Utilitarios_234TL.MensajeConfirmacion("Mensaje_ConfirmarActivacion", usuario.Login) == DialogResult.Yes)
+                if (Utilitarios_234TL.MensajeConfirmacion(this,"ActivarUsuario", usuario.Login) == DialogResult.Yes)
                 {
                     bll.ActivarUsuario(usuario);
-                    Utilitarios_234TL.MensajeExito("Mensaje_UsuarioActivado");
+                    Utilitarios_234TL.MensajeExito("UsuarioActivado");
                 }
             }
 
@@ -273,14 +274,14 @@ namespace GUI_234TL
                         };
 
                         bll.CrearNuevoUsuario(nuevoUsuario);
-                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioCreado");
+                        Utilitarios_234TL.MensajeExito("UsuarioCreado");
                         break;
 
                     case ModoFormulario.ModoModificar:
 
                         if (dataGridViewUsuarios.CurrentRow == null)
                         {
-                            Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                            Utilitarios_234TL.MensajeError("SeleccioneUsuario");
                             return;
                         }
                         var usuarioModificar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
@@ -291,28 +292,28 @@ namespace GUI_234TL
                         usuarioModificar.Perfil = RolcomboBox.SelectedItem as Perfil_234TL;
 
                         bll.ModificarUsuario(usuarioModificar);
-                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioModificado");
+                        Utilitarios_234TL.MensajeExito("UsuarioModificado");
                         break;
 
                     case ModoFormulario.ModoEliminar:
 
                         if (dataGridViewUsuarios.CurrentRow == null)
                         {
-                            Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                            Utilitarios_234TL.MensajeError("SeleccioneUsuario");
                             return;
                         }
                         var usuarioeliminar = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
                         if (usuarioeliminar.Perfil?.Nombre == RolAdmin)
                         {
-                            Utilitarios_234TL.MensajeError("Mensaje_NoEliminarAdmin");
+                            Utilitarios_234TL.MensajeError("NoEliminarAdmin");
                             return;
                         }
-                        if (Utilitarios_234TL.MensajeConfirmacion("Confirmacion_EliminarUsuario") != DialogResult.Yes)
+                        if (Utilitarios_234TL.MensajeConfirmacion(this,"EliminarUsuario") != DialogResult.Yes)
                         {
                             return;
                         }
                         bll.Eliminar(usuarioeliminar);
-                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioEliminado");
+                        Utilitarios_234TL.MensajeExito("UsuarioEliminado");
                         CargarUsuarios();
 
                         break;
@@ -320,19 +321,19 @@ namespace GUI_234TL
                     case ModoFormulario.ModoDesbloquear:
                         if (dataGridViewUsuarios.CurrentRow == null)
                         {
-                            Utilitarios_234TL.MensajeError("Mensaje_SeleccioneUsuario");
+                            Utilitarios_234TL.MensajeError("SeleccioneUsuario");
                             return;
                         }
                         var usuarioseleccionado = (Usuario_234TL)dataGridViewUsuarios.CurrentRow.DataBoundItem;
                         if (!usuarioseleccionado.Bloqueado)
                         {
-                            Utilitarios_234TL.MensajeInformacion("Mensaje_UsuarioNoBloqueado");
+                            Utilitarios_234TL.MensajeInformacion("UsuarioNoBloqueado");
                             return;
                         }
                         bll.DesbloquearUsuario(usuarioseleccionado);
                         CargarUsuarios();
                         ColorearFilasBloqueadas();
-                        Utilitarios_234TL.MensajeExito("Mensaje_UsuarioDesbloqueado");
+                        Utilitarios_234TL.MensajeExito("UsuarioDesbloqueado");
                         break;
 
                     default:
@@ -513,42 +514,53 @@ namespace GUI_234TL
             ColorearFilasBloqueadas();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
-            this.Text = Traduccion["FormUsuarios_234TL_Title"];
-            CrearButton.Text = Traduccion["FormUsuarios_234TL_CrearButton"];
-            ModificarButton.Text = Traduccion["FormUsuarios_234TL_ModificarButton"];
-            DesbloquearButton.Text = Traduccion["FormUsuarios_234TL_DesbloquearButton"];
-            ActDesactButton.Text = Traduccion["FormUsuarios_234TL_ActivarDesactivarButton"];
-            AplicarButton.Text = Traduccion["FormUsuarios_234TL_AplicarButton"];
-            Eliminarbutton.Text = Traduccion["FormUsuarios_234TL_EliminarButton"];
-            ConsultaButton.Text = Traduccion["FormUsuarios_234TL_ConsultaButton"];
-
-            label1.Text = Traduccion["FormUsuarios_234TL_Label_DNI"];
-            label2.Text = Traduccion["FormUsuarios_234TL_Label_Nombre"];
-            label3.Text = Traduccion["FormUsuarios_234TL_Label_Apellido"];
-            label4.Text = Traduccion["FormUsuarios_234TL_Label_Email"];
-            label5.Text = Traduccion["FormUsuarios_234TL_Label_Rol"];
-            label9.Text = Traduccion["FormUsuarios_234TL_Title"];
-
-            radioButtonActivo.Text = Traduccion["FormUsuarios_234TL_Label_Activos"];
-            TodosradioButton.Text = Traduccion["FormUsuarios_234TL_Label_Todos"];
-            AtributoscheckBox.Text = Traduccion["FormUsuarios_234TL_Label_Atributos"];
-
-            if (dataGridViewUsuarios.Columns.Count > 0)
+            try
             {
-                dataGridViewUsuarios.Columns[0].HeaderText = Traduccion["FormUsuarios_234TL_Label_DNI"];
-                dataGridViewUsuarios.Columns[1].HeaderText = Traduccion["FormUsuarios_234TL_Label_Nombre"];
-                dataGridViewUsuarios.Columns[2].HeaderText = Traduccion["FormUsuarios_234TL_Label_Apellido"];
-                dataGridViewUsuarios.Columns[3].HeaderText = Traduccion["FormUsuarios_234TL_Label_Email"];
-                dataGridViewUsuarios.Columns[4].HeaderText = Traduccion["FormUsuarios_234TL_Label_Rol"];
-                dataGridViewUsuarios.Columns[5].HeaderText = Traduccion["FormUsuarios_234TL_Label_Bloqueado"];
-                dataGridViewUsuarios.Columns[6].HeaderText = Traduccion["FormUsuarios_234TL_Label_Activo"];
-                dataGridViewUsuarios.Columns[7].HeaderText = Traduccion["FormUsuarios_234TL_Label_Login"];
-                dataGridViewUsuarios.Columns[8].HeaderText = Traduccion["FormUsuarios_234TL_Label_Password"];
-                dataGridViewUsuarios.Columns[9].HeaderText = Traduccion["FormUsuarios_234TL_Label_IntentosFallidos"];
-                dataGridViewUsuarios.Columns[10].HeaderText = Traduccion["FormUsuarios_234TL_Label_UltimoIntentoFallido"];
 
+                var textos = Traduccion.Forms.Usuarios;
+
+                this.Text = textos.Title;
+
+                CrearButton.Text = textos.CrearButton;
+                ModificarButton.Text = textos.ModificarButton;
+                Eliminarbutton.Text = textos.EliminarButton;
+                DesbloquearButton.Text = textos.DesbloquearButton;
+                ActDesactButton.Text = textos.ActivarDesactivarButton;
+                AplicarButton.Text = textos.AplicarButton;
+                ConsultaButton.Text = textos.ConsultaButton;
+
+
+                label1.Text = textos.Label_DNI;
+                label3.Text = textos.Label_Nombre;
+                label2.Text = textos.Label_Apellido;
+                label4.Text = textos.Label_Email;
+                label5.Text = textos.Label_Rol;
+                label9.Text = textos.Label_Titulo;
+
+                radioButtonActivo.Text = textos.Label_Activos;
+                TodosradioButton.Text = textos.Label_Todos;
+                AtributoscheckBox.Text = textos.Label_Atributos;
+
+                if (dataGridViewUsuarios.Columns.Count > 0)
+                {
+                    dataGridViewUsuarios.Columns["DNI"].HeaderText = textos.Columna_DNI;
+                    dataGridViewUsuarios.Columns["Nombre"].HeaderText = textos.Columna_Nombre;
+                    dataGridViewUsuarios.Columns["Apellido"].HeaderText = textos.Columna_Apellido;
+                    dataGridViewUsuarios.Columns["Email"].HeaderText = textos.Columna_Email;
+                    dataGridViewUsuarios.Columns["Perfil"].HeaderText = textos.Columna_Rol;
+                    dataGridViewUsuarios.Columns["Bloqueado"].HeaderText = textos.Columna_Bloqueado;
+                    dataGridViewUsuarios.Columns["Activo"].HeaderText = textos.Columna_Activo;
+                    dataGridViewUsuarios.Columns["Login"].HeaderText = textos.Columna_Login;
+                    dataGridViewUsuarios.Columns["Password"].HeaderText = textos.Columna_Password;
+                    dataGridViewUsuarios.Columns["IntentosFallidos"].HeaderText = textos.Columna_IntentosFallidos;
+                    dataGridViewUsuarios.Columns["UltimoIntentoFallido"].HeaderText = textos.Columna_UltimoIntentoFallido;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al aplicar traducciones en FormUsuarios: {ex.Message}");
             }
 
         }
@@ -574,9 +586,17 @@ namespace GUI_234TL
         {
             try
             {
-                var traducciones = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
-                string clave = modo.ToString();
-                return traducciones[clave];
+                var traduccion = IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales();
+
+                switch (modo)
+                {
+                    case ModoFormulario.ModoConsulta: return traduccion.Modos.ModoConsulta;
+                    case ModoFormulario.ModoCrear: return traduccion.Modos.ModoCrear;
+                    case ModoFormulario.ModoModificar: return traduccion.Modos.ModoModificar;
+                    case ModoFormulario.ModoEliminar: return traduccion.Modos.ModoEliminar;
+                    case ModoFormulario.ModoDesbloquear: return traduccion.Modos.ModoDesbloquear;
+                    default: return modo.ToString();
+                }
             }
             catch
             {

@@ -38,5 +38,10 @@ namespace BE_234TL
             ComprobanteGenerado = comprobanteGenerado;
         }
 
+        public override string ToString()
+        {
+            return this.NumeroReparacion.ToString();
+        }
+
     }
 }

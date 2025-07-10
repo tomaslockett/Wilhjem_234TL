@@ -69,7 +69,7 @@
             // MarcaLabel
             // 
             MarcaLabel.AutoSize = true;
-            MarcaLabel.Location = new Point(69, 338);
+            MarcaLabel.Location = new Point(18, 338);
             MarcaLabel.Name = "MarcaLabel";
             MarcaLabel.Size = new Size(40, 15);
             MarcaLabel.TabIndex = 4;
@@ -85,7 +85,7 @@
             // ModeloLabel
             // 
             ModeloLabel.AutoSize = true;
-            ModeloLabel.Location = new Point(61, 375);
+            ModeloLabel.Location = new Point(18, 375);
             ModeloLabel.Name = "ModeloLabel";
             ModeloLabel.Size = new Size(48, 15);
             ModeloLabel.TabIndex = 6;
@@ -110,7 +110,7 @@
             // EstadoVisualLabel
             // 
             EstadoVisualLabel.AutoSize = true;
-            EstadoVisualLabel.Location = new Point(33, 404);
+            EstadoVisualLabel.Location = new Point(18, 404);
             EstadoVisualLabel.Name = "EstadoVisualLabel";
             EstadoVisualLabel.Size = new Size(76, 15);
             EstadoVisualLabel.TabIndex = 10;
@@ -126,7 +126,7 @@
             // FallaLabel
             // 
             FallaLabel.AutoSize = true;
-            FallaLabel.Location = new Point(78, 433);
+            FallaLabel.Location = new Point(18, 438);
             FallaLabel.Name = "FallaLabel";
             FallaLabel.Size = new Size(31, 15);
             FallaLabel.TabIndex = 12;
@@ -135,7 +135,7 @@
             // DañoVisualLabel
             // 
             DañoVisualLabel.AutoSize = true;
-            DañoVisualLabel.Location = new Point(32, 466);
+            DañoVisualLabel.Location = new Point(17, 466);
             DañoVisualLabel.Name = "DañoVisualLabel";
             DañoVisualLabel.Size = new Size(77, 15);
             DañoVisualLabel.TabIndex = 14;
@@ -144,7 +144,7 @@
             // DesarmadoLabel
             // 
             DesarmadoLabel.AutoSize = true;
-            DesarmadoLabel.Location = new Point(41, 495);
+            DesarmadoLabel.Location = new Point(18, 495);
             DesarmadoLabel.Name = "DesarmadoLabel";
             DesarmadoLabel.Size = new Size(67, 15);
             DesarmadoLabel.TabIndex = 16;

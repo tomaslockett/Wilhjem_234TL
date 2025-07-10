@@ -1,6 +1,8 @@
 ﻿using BE_234TL;
 using BLL_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,37 +17,37 @@ using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormCobrarDiagnostico : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormCobrarDiagnostico : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         ReparacionDTOBLL_234TL ReparacionDTObll = new();
+        ReparacionBLL_234TL Reparacionbll = new();
         public event EventHandler Cobrado;
         public FormCobrarDiagnostico()
         {
             InitializeComponent();
             Utilitarios_234TL.SuscribirAIdiomas(this);
-            ConfigurarColumnasOrdenes();
             ConfigurarDataGrids();            
             dataGridViewReparaciones.DataSource = ReparacionDTObll.ObtenerReparacionesDTO();
+            IdiomasManager_234TL.Instancia.NotificarActuales();
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
-            this.Text = Traduccion["FormCobrarDiagnostico_Titulo"];
-            NumeroTarjetaLabel.Text = Traduccion["FormCobrarDiagnostico_NumeroTarjetaLabel"];
-            CodigoSeguridadLabel.Text = Traduccion["FormCobrarDiagnostico_CodigoSeguridadLabel"];
-            VencimientoLabel.Text = Traduccion["FormCobrarDiagnostico_VencimientoLabel"];
-            CobrarButton.Text = Traduccion["FormCobrarDiagnostico_CobrarButton"];
+            try
+            {
+                var textos = Traduccion.Forms.CobrarDiagnostico;
+                this.Text = textos.Title;
 
-            dataGridViewReparaciones.Columns["Columna_NumeroReparacion"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_NumeroReparacion"];
-            dataGridViewReparaciones.Columns["Columna_Estado"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_Estado"];
-            dataGridViewReparaciones.Columns["Columna_NumeroSerie"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_NumeroSerie"];
-            dataGridViewReparaciones.Columns["Columna_NombreCliente"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_NombreCliente"];
-            dataGridViewReparaciones.Columns["Columna_DNICliente"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_DNICliente"];
-            dataGridViewReparaciones.Columns["Columna_NombreTecnico"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_NombreTecnico"];
-            dataGridViewReparaciones.Columns["Columna_EspecialidadTecnico"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_EspecialidadTecnico"];
-            dataGridViewReparaciones.Columns["Columna_Cobrado"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_Cobrado"];
-            dataGridViewReparaciones.Columns["Columna_FacturaGenerada"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_FacturaGenerada"];
-            dataGridViewReparaciones.Columns["Columna_ComprobanteGenerado"].HeaderText =Traduccion["FormCobrarDiagnostico_Columna_ComprobanteGenerado"];
+                NumeroTarjetaLabel.Text = textos.Label_NumeroTarjeta;
+                CodigoSeguridadLabel.Text = textos.Label_CodigoSeguridad;
+                VencimientoLabel.Text = textos.Label_Vencimiento;
+                CobrarButton.Text = textos.CobrarBotton;
+                ConfigurarColumnasOrdenes(textos);
+            }
+            catch (Exception ex) 
+            {
+                Utilitarios_234TL.MensajeError("ErrorTraduccion", ex);
+            }
         }
 
         private void FormCobrarDiagnostico_FormClosed(object sender, FormClosedEventArgs e)
@@ -57,80 +59,55 @@ namespace GUI_234TL
         {
             if (dataGridViewReparaciones.SelectedRows.Count == 0)
             {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_SeleccionarReparacion");
+                Utilitarios_234TL.MensajeAdvertencia("SeleccionarReparacion");
                 return;
             }
-
-            var fila = dataGridViewReparaciones.SelectedRows[0];
-            if (fila.DataBoundItem is not ReparacionDTO_234TL reparacionDTO)
-            {
-                Utilitarios_234TL.MensajeError("Error_ReparacionInvalida");
-                return;
-            }
-
-            string tarjeta = NumeroTarjetaTextBox.Text.Trim();
-            string codigo = CodigoSeguridadTextBox.Text.Trim();
-            string vencimiento = VencimientoTextBox.Text.Trim();
-
-            if (!Regex.IsMatch(tarjeta, @"^\d{16}$"))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_TarjetaInvalida");
-                NumeroTarjetaTextBox.Focus();
-                return;
-            }
-
-            if (!Regex.IsMatch(codigo, @"^\d{3,4}$"))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_CodigoInvalido");
-                CodigoSeguridadTextBox.Focus();
-                return;
-            }
-
-            if (!Regex.IsMatch(vencimiento, @"^(0[1-9]|1[0-2])\/\d{2}$"))
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_VencimientoInvalido");
-                VencimientoTextBox.Focus();
-                return;
-            }
-
-            if (reparacionDTO.Cobrado)
-            {
-                Utilitarios_234TL.MensajeAdvertencia("Advertencia_YaCobrado");
-                return;
-            }
+            var reparacionDTO = (ReparacionDTO_234TL)dataGridViewReparaciones.SelectedRows[0].DataBoundItem;
 
             try
             {
-                ReparacionBLL_234TL reparacionBLL = new();
-                reparacionBLL.CobrarDiagnostico(Convert.ToInt32(reparacionDTO.NumeroReparacion));
-
-                Utilitarios_234TL.MensajeExito("Exito_DiagnosticoCobrado");
-
-                Cobrado?.Invoke(this, EventArgs.Empty);
-                dataGridViewReparaciones.DataSource = null;
-                dataGridViewReparaciones.DataSource = ReparacionDTObll.ObtenerReparacionesDTO();
+                Reparacionbll.CobrarDiagnostico(numeroReparacion: Convert.ToInt32(reparacionDTO.NumeroReparacion),numeroTarjeta: NumeroTarjetaTextBox.Text,codigoSeguridad: CodigoSeguridadTextBox.Text,vencimiento: VencimientoTextBox.Text);
+                Utilitarios_234TL.MensajeExito("DiagnosticoCobradoExito");
+                Cobrado?.Invoke(this, EventArgs.Empty); 
                 this.Close();
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+
+                switch (ex.Nombre)
+                {
+                    case "NumeroTarjeta":
+                        NumeroTarjetaTextBox.Focus();
+                        break;
+                    case "CodigoSeguridad":
+                        CodigoSeguridadTextBox.Focus();
+                        break;
+                    case "Vencimiento":
+                        VencimientoTextBox.Focus();
+                        break;
+                }
             }
             catch (Exception ex)
             {
-                Utilitarios_234TL.MensajeError("Error_CobrarDiagnostico", ex);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoCobrarDiagnostico", ex);
             }
         }
-        private void ConfigurarColumnasOrdenes()
+        private void ConfigurarColumnasOrdenes(FormCobrarDiagnostico_234TL textos)
         {
             dataGridViewReparaciones.AutoGenerateColumns = false;
             dataGridViewReparaciones.Columns.Clear();
 
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroReparacion", HeaderText = "Número", DataPropertyName = "NumeroReparacion" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", HeaderText = "Estado", DataPropertyName = "Estado" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", HeaderText = "N° Serie", DataPropertyName = "NumeroSerie" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreCliente", HeaderText = "Cliente", DataPropertyName = "NombreCliente" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNICliente", HeaderText = "DNI", DataPropertyName = "DNICliente" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreTecnico", HeaderText = "Técnico", DataPropertyName = "NombreTecnico" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_EspecialidadTecnico", HeaderText = "Especialidad", DataPropertyName = "EspecialidadTecnico" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Cobrado", HeaderText = "Cobrado", DataPropertyName = "Cobrado" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_FacturaGenerada", HeaderText = "Factura Generada", DataPropertyName = "FacturaGenerada" });
-            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_ComprobanteGenerado", HeaderText = "Comprobante Generado", DataPropertyName = "ComprobanteGenerado" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroReparacion", HeaderText = textos.Columna_NumeroReparacion, DataPropertyName = "NumeroReparacion" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_Estado", HeaderText = textos.Columna_Estado, DataPropertyName = "Estado" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NumeroSerie", HeaderText = textos.Columna_NumeroSerie, DataPropertyName = "NumeroSerie" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreCliente", HeaderText = textos.Columna_NombreCliente, DataPropertyName = "NombreCliente" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_DNICliente", HeaderText = textos.Columna_DNICliente, DataPropertyName = "DNICliente" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_NombreTecnico", HeaderText = textos.Columna_NombreTecnico, DataPropertyName = "NombreTecnico" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewTextBoxColumn { Name = "Columna_EspecialidadTecnico", HeaderText = textos.Columna_EspecialidadTecnico, DataPropertyName = "EspecialidadTecnico" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_Cobrado", HeaderText = textos.Columna_Cobrado, DataPropertyName = "Cobrado" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_FacturaGenerada", HeaderText = textos.Columna_FacturaGenerada, DataPropertyName = "FacturaGenerada" });
+            dataGridViewReparaciones.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Columna_ComprobanteGenerado", HeaderText = textos.Columna_ComprobanteGenerado, DataPropertyName = "ComprobanteGenerado" });
         }
 
         private void ConfigurarDataGrids()

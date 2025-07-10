@@ -1,5 +1,7 @@
 ﻿using BE_234TL;
 using DAL_234TL;
+using Servicios_234TL.Exception_234TL;
+using System.Text.RegularExpressions;
 
 namespace BLL_234TL
 {
@@ -15,22 +17,22 @@ namespace BLL_234TL
             {
                 if (cliente == null)
                 {
-                    throw new ArgumentNullException(nameof(cliente), "El cliente no puede ser nulo.");
+                    throw new ValidacionesException_234TL("ClienteNulo", nameof(cliente));
                 }
 
                 if (equipo == null)
                 {
-                    throw new ArgumentNullException(nameof(equipo), "El equipo no puede ser nulo.");
+                    throw new ValidacionesException_234TL("EquipoNulo", nameof(equipo));
                 }
 
                 if (string.IsNullOrWhiteSpace(cliente.Dni))
                 {
-                    throw new ArgumentException("El DNI del cliente no puede estar vacío.", nameof(cliente));
+                    throw new ValidacionesException_234TL("ClienteDniVacio", nameof(cliente));
                 }
 
                 if (string.IsNullOrWhiteSpace(equipo.NumeroSerie))
                 {
-                    throw new ArgumentException("El número de serie del equipo no puede estar vacío.", nameof(equipo));
+                    throw new ValidacionesException_234TL("EquipoSerieVacio", nameof(equipo));
                 }
 
                 var todasLasReparaciones = GetAll();
@@ -45,6 +47,10 @@ namespace BLL_234TL
 
                 return $"{DniParte}{SerialParte}{ContadorParte}";
             }
+            catch (ValidacionesException_234TL)
+            {
+                throw; 
+            }
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Error al generar el número de reparación.", ex);
@@ -57,34 +63,38 @@ namespace BLL_234TL
             {
                 if (cliente == null)
                 {
-                    throw new ArgumentNullException(nameof(cliente), "El cliente no puede ser nulo.");
+                    throw new ValidacionesException_234TL("ClienteNulo", nameof(cliente));
                 }
 
                 if (equipo == null)
                 {
-                    throw new ArgumentNullException(nameof(equipo), "El equipo no puede ser nulo.");
+                    throw new ValidacionesException_234TL("EquipoNulo", nameof(equipo));
                 }
 
                 if (tecnico == null)
                 {
-                    throw new ArgumentNullException(nameof(tecnico), "El técnico no puede ser nulo.");
+                    throw new ValidacionesException_234TL("TecnicoNulo", nameof(tecnico));
                 }
 
                 if (string.IsNullOrWhiteSpace(estado))
                 {
-                    throw new ArgumentException("El estado no puede estar vacío.", nameof(estado));
+                    throw new ValidacionesException_234TL("EstadoVacio", nameof(estado));
                 }
 
                 string NumeroReparacion = GenerarNumeroReparacion(cliente, equipo);
 
                 if (!int.TryParse(NumeroReparacion, out int numeroReparacionInt))
                 {
-                    throw new InvalidOperationException("El número de reparación generado no es válido.");
+                    throw new ValidacionesException_234TL("NumeroReparacionInvalido", "General");
                 }
 
-                var nuevareparacion = new Reparacion_234TL(numeroReparacionInt, estado, cliente, equipo, tecnico,false,false,false);
+                var nuevareparacion = new Reparacion_234TL(numeroReparacionInt, estado, cliente, equipo, tecnico, false, false, false);
 
                 Guardar(nuevareparacion);
+            }
+            catch (ValidacionesException_234TL)
+            {
+                throw; 
             }
             catch (Exception ex)
             {
@@ -96,7 +106,7 @@ namespace BLL_234TL
             var reparacion = GetAll().FirstOrDefault(r => r.NumeroReparacion == numeroReparacion);
             if (reparacion == null)
             {
-                throw new ArgumentException("No se encontró la reparación con el número especificado.", nameof(numeroReparacion));
+                throw new ValidacionesException_234TL("ReparacionNoEncontrada", nameof(numeroReparacion), numeroReparacion);
             }
             return reparacion.Cobrado;
         }
@@ -106,7 +116,7 @@ namespace BLL_234TL
             var reparacion = GetAll().FirstOrDefault(r => r.NumeroReparacion == numeroReparacion);
             if (reparacion == null)
             {
-                throw new ArgumentException("No se encontró la reparación con el número especificado.", nameof(numeroReparacion));
+                throw new ValidacionesException_234TL("ReparacionNoEncontrada", nameof(numeroReparacion), numeroReparacion);
             }
             return reparacion.FacturaGenerada;
         }
@@ -116,26 +126,59 @@ namespace BLL_234TL
             var reparacion = GetAll().FirstOrDefault(r => r.NumeroReparacion == numeroReparacion);
             if (reparacion == null)
             {
-                throw new ArgumentException("No se encontró la reparación con el número especificado.", nameof(numeroReparacion));
+                throw new ValidacionesException_234TL("ReparacionNoEncontrada", nameof(numeroReparacion), numeroReparacion);
             }
             return reparacion.ComprobanteGenerado;
         }
 
-        public void CobrarDiagnostico(int numeroReparacion)
+        public void CobrarDiagnostico(int numeroReparacion, string numeroTarjeta, string codigoSeguridad, string vencimiento)
         {
-            var reparacion = GetbyPrimaryKey(numeroReparacion);
+            if (!Regex.IsMatch(numeroTarjeta, @"^\d{16}$"))
+            {
+                throw new ValidacionesException_234TL("TarjetaInvalida", "NumeroTarjeta");
+            }
+
+
+            if (!Regex.IsMatch(codigoSeguridad, @"^\d{3,4}$"))
+            {
+                throw new ValidacionesException_234TL("CvvInvalido", "CodigoSeguridad");
+            }
+
+            if (!Regex.IsMatch(vencimiento, @"^(0[1-9]|1[0-2])\/\d{2}$"))
+            {
+                throw new ValidacionesException_234TL("VencimientoInvalido", "Vencimiento");
+            }
+            try
+            {
+                var partes = vencimiento.Split('/');
+                int mes = int.Parse(partes[0]);
+                int anio = 2000 + int.Parse(partes[1]); 
+
+                var fechaVencimiento = new DateTime(anio, mes, 1).AddMonths(1).AddDays(-1);
+
+                if (fechaVencimiento < DateTime.Today)
+                {
+                    throw new ValidacionesException_234TL("TarjetaVencida", "Vencimiento");
+                }
+            }
+            catch
+            {
+                throw new ValidacionesException_234TL("VencimientoInvalido", "Vencimiento");
+            }
+
+            var reparacion = _repositorio.GetbyPrimaryKey(numeroReparacion);
             if (reparacion == null)
             {
-                throw new Exception("No se encontró la reparación.");
+                throw new ValidacionesException_234TL("ReparacionNoEncontrada", "General", numeroReparacion);
             }
 
             if (reparacion.Cobrado)
             {
-                throw new Exception("Esta reparación ya fue cobrada.");
+                throw new ValidacionesException_234TL("DiagnosticoYaCobrado", "General", numeroReparacion);
             }
 
             reparacion.Cobrado = true;
-            Update(reparacion);
+            _repositorio.Update(reparacion);
         }
 
     }

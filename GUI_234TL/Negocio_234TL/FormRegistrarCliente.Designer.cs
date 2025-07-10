@@ -165,6 +165,7 @@
             Name = "FormRegistrarCliente";
             Text = "FormRegistrarCliente";
             FormClosed += FormRegistrarCliente_FormClosed;
+            Load += FormRegistrarCliente_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();

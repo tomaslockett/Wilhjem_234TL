@@ -1,12 +1,14 @@
 ﻿using BLL_234TL;
 using Servicios_234TL;
+using Servicios_234TL.Exception_234TL;
 using Servicios_234TL.Observer_234TL;
+using Servicios_234TL.Observer_234TL.Traducciones_234TL;
 using Servicios_234TL.Singleton_234TL;
 using Wilhjem;
 
 namespace GUI_234TL
 {
-    public partial class FormCambiarContraseña_234TL : Form, IObserver_234TL<Dictionary<string, string>>
+    public partial class FormCambiarContraseña_234TL : Form, IObserver_234TL<TraduccionesClase_234TL>
     {
         private readonly UsuarioBLL_234TL usuarioBLL = new();
         public FormCambiarContraseña_234TL()
@@ -27,72 +29,40 @@ namespace GUI_234TL
         {
             try
             {
-                string actual = textBox1.Text.Trim();
-                string nueva = textBox2.Text.Trim();
-                string confirmacion = textBox3.Text.Trim();
+                string actual = textBox1.Text;
+                string nueva = textBox2.Text;
+                string confirmacion = textBox3.Text;
 
-                if (!SingletonT_234TL<Sesion_234TL>.GetInstance().IsLoggedIn_234TL())
-                {
-                    Utilitarios_234TL.MensajeError("Mensaje_NoUsuarioLogueado");
-                    textBox1.Clear();
-                    textBox2.Clear();
-                    textBox3.Clear();
-                    this.Close();
-                    return;
-                }
-                var usuario = usuarioBLL.GetUsuarioLogueado();
-                if (usuario == null)
-                {
-                    Utilitarios_234TL.MensajeError("Mensaje_NoUsuarioLogueado");
-                    textBox1.Clear();
-                    textBox2.Clear();
-                    textBox3.Clear();
-                    this.Close();
-                    return;
-                }
-                if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(nueva) || string.IsNullOrWhiteSpace(confirmacion))
-                {
-                    Utilitarios_234TL.MensajeAdvertencia("Mensaje_CompletarCampos");
-                    return;
-                }
+                usuarioBLL.CambiarContraseña(actual, nueva, confirmacion);
 
-                if (nueva != confirmacion)
-                {
-                    Utilitarios_234TL.MensajeError("Mensaje_ContraseñaIncorrecta");
-                    return;
-                }
+                Utilitarios_234TL.MensajeExito("ContraseñaCambiadaConExito");
 
-                string Actualpassword = Encryptador_234TL.SHA256Encrpytar_234TL(actual);
-
-                if (usuario.Password != Actualpassword)
-                {
-                    Utilitarios_234TL.MensajeError("Mensaje_ContraseñaIgualAnterior");
-                    return;
-                }
-                if (Encryptador_234TL.SHA256Encrpytar_234TL(nueva) == usuario.Password)
-                {
-                    Utilitarios_234TL.MensajeError("Mensaje_ContraseñaIgualAnterior");
-                    return;
-                }
-                string nuevaHash = Encryptador_234TL.SHA256Encrpytar_234TL(nueva);
-                usuario.Password = nuevaHash;
-                usuarioBLL.Update(usuario);
-                usuarioBLL.Logout();
                 if (this.Owner is FormPrincipal_234TL formPrincipal)
                 {
                     formPrincipal.ActualizarUsuarioLogueado(null);
-                    IdiomasManager_234TL.Instancia.NotificarActuales();
                 }
-                Utilitarios_234TL.MensajeExito("Mensaje_ContraseñaCambiada");
-                textBox1.Clear();
-                textBox2.Clear();
-                textBox3.Clear();
                 this.Close();
+            }
+            catch (ValidacionesException_234TL ex)
+            {
+                Utilitarios_234TL.MensajeError(ex.Message, null, ex.Args);
+
+                switch (ex.Nombre)
+                {
+                    case "ContraseñaActual":
+                        textBox1.Focus();
+                        break;
+                    case "ContraseñaNueva":
+                        textBox2.Focus();
+                        break;
+                    case "Confirmacion":
+                        textBox3.Focus();
+                        break;
+                }
             }
             catch (Exception ex)
             {
-                var msg = string.Format(IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales()["Mensaje_ErrorInesperado"], ex.Message);
-                MessageBox.Show(msg, IdiomasManager_234TL.Instancia.ObtenerIdiomasActuales()["MensajeTitulo_Error"], MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Utilitarios_234TL.MensajeError("ErrorInesperadoCambiarContraseña", ex);
             }
         }
 
@@ -124,16 +94,27 @@ namespace GUI_234TL
         {
         }
 
-        public void Update(Dictionary<string, string> Traduccion)
+        public void Update(TraduccionesClase_234TL Traduccion)
         {
-            this.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Title"];
-            label1.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Titulo"];
-            label2.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Label_Actual"];
-            label3.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Label_Nueva"];
-            label4.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Label_Confirmar"];
-            Ingresarbutton.Text = Traduccion["FormCambiarContraseñaLabel_234TL_Button_Ingresar"];
-            MostrarButton.Text = Traduccion["FormCambiarContraseñaLabel_234TL_CheckBox_Mostrar"];
-            MostarButton2.Text = Traduccion["FormCambiarContraseñaLabel_234TL_CheckBox_Mostrar2"];
+            try
+            {
+                var textos = Traduccion.Forms.CambiarContraseña;
+
+                this.Text = textos.Title;
+                label1.Text = textos.Label_Titulo;
+                label2.Text = textos.Label_Actual;
+                label3.Text = textos.Label_Nueva;
+                label4.Text = textos.Label_Confirmar;
+
+                Ingresarbutton.Text = textos.CambiarBotton; 
+
+                MostrarButton.Text = textos.CheckBox_Mostrar;
+                MostarButton2.Text = textos.CheckBox_Mostrar;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al aplicar las traducciones para el formulario de Cambio de Contraseña.");
+            }
         }
 
         private void FormCambiarContraseña_234TL_FormClosed(object sender, FormClosedEventArgs e)
